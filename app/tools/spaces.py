@@ -5,7 +5,7 @@ from pathlib import Path
 
 from app.core import llm, storage
 from app.core.tooling import RunContext, ToolError, ToolResult, ToolSpec
-from app.tools.assistant_qa import MAX_CHARS, NOT_IN_DOCUMENT, _normalise, extract_pages
+from app.tools.assistant_qa import MAX_CHARS, NOT_IN_DOCUMENT, _normalise, extract_pages, quote_on_page
 
 SPACES_PATH = storage.STORAGE_DIR / "spaces.json"
 
@@ -88,8 +88,7 @@ def check_citations(documents: dict[str, list[str]], citations: list[dict]) -> l
         pages = documents.get(citation["file"])
         page = citation["page"]
         exists = pages is not None and 1 <= page <= len(pages)
-        quote = _normalise(citation["quote"])
-        verified = exists and bool(quote) and quote in _normalise(pages[page - 1])
+        verified = exists and quote_on_page(citation["quote"], pages[page - 1])
         checked.append({**citation, "page_exists": exists, "verified": verified})
     return checked
 
