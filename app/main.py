@@ -6,6 +6,8 @@ auto-discovered from app/tools/*.py (any module that defines TOOL).
 from __future__ import annotations
 
 import logging
+import os
+import shutil
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
@@ -19,6 +21,15 @@ from app.core.pdf_utils import page_count
 from app.core.tooling import LOAD_ERRORS, REGISTRY, RunContext, discover, normalize_outputs, run_tool
 
 logging.basicConfig(level=logging.INFO)
+
+# The Windows Tesseract installer doesn't add itself to PATH, so OCR and redact
+# would fail. Fall back to its default install folder when it's not on PATH.
+if not shutil.which("tesseract"):
+    for folder in (Path(os.environ.get("ProgramFiles", r"C:\Program Files")) / "Tesseract-OCR",
+                   Path(os.environ.get("LOCALAPPDATA", "")) / "Programs" / "Tesseract-OCR"):
+        if (folder / "tesseract.exe").exists():
+            os.environ["PATH"] = f"{folder}{os.pathsep}{os.environ.get('PATH', '')}"
+            break
 
 app = FastAPI(title="Fill Me", version="0.1.0")
 app.add_middleware(
