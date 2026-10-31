@@ -1,7 +1,7 @@
 # Brief A: Platform and Standard-tier tools
 
 Read `SPEC.md` first. It holds the shared contract, the rules and the timeline. This brief is your part only.
-Owner: ______  Branch prefix: `a/`
+Owner: Darren Choo  Branch prefix: `a/`
 
 ## Your job in one line
 Build the app everyone else plugs into, then the Standard-tier tools Adobe charges US$14.99/mo and up for.

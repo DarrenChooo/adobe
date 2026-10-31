@@ -2,18 +2,20 @@
 
 | Operation | Median time (ms) |
 |---|---|
-| merge 3p + 2p | 4.6 |
-| merge 51p + 2p | 17.2 |
-| split 3p into 3 files | 6.1 |
-| split 51p into 51 files | 61.5 |
-| protect 3p (AES-256) | 10.5 |
-| protect 51p (AES-256) | 28.1 |
+| merge 3p + 2p | 5.8 |
+| merge 51p + 2p | 10.6 |
+| split 3p into 3 files | 3.8 |
+| split 51p into 51 files | 44.2 |
+| protect 3p (AES-256) | 7.4 |
+| protect 51p (AES-256) | 17.1 |
 
-| Compression level | Before (KB) | After (KB) | Saved |
-|---|---|---|---|
-| low (5 photo pages) | 250 | 112 | 55.1% |
-| medium (5 photo pages) | 250 | 76 | 69.4% |
-| high (5 photo pages) | 250 | 55 | 78.0% |
+Photo PDF: 10 real 3840x2400 photos, JPEGs total 9647 KB, PDF 9655 KB
+
+| Compression level | Before (KB) | After (KB) | Saved | Time (s) |
+|---|---|---|---|---|
+| low (10 real 3840x2400 photos) | 9655 | 2466 | 74.5% | 4.9 |
+| medium (10 real 3840x2400 photos) | 9655 | 817 | 91.5% | 4.3 |
+| high (10 real 3840x2400 photos) | 9655 | 358 | 96.3% | 3.4 |
 | medium (3p text-only report) | 3.1 | 2.8 | 11.3% |
 
 # Page tree of a-report-3p.pdf

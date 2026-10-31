@@ -71,15 +71,23 @@ def main():
         ms, _ = timed(lambda: fn(ins, params, ctx(ins)))
         print(f"| {label} | {ms:.1f} |")
 
-    # Compression: an image-heavy PDF made from the sample photo at full resolution.
-    photo = S / "a-photo.jpg"
-    made = create.run([photo] * 5, {"fit": "image"}, ctx([photo] * 5))
+    # Compression on real photos: Windows ships 3840x2400 wallpaper JPEGs, which
+    # make a realistic photo-heavy PDF with no personal data. Falls back to the sample.
+    photos = sorted(p for p in Path("C:/Windows/Web/Wallpaper").glob("Theme*/*.jpg"))[:10]
+    label = f"{len(photos)} real 3840x2400 photos"
+    if not photos:
+        photos, label = [S / "a-photo.jpg"] * 5, "5 copies of the sample photo"
+    raw_kb = sum(p.stat().st_size for p in photos) / 1024
+    made = create.run(photos, {}, ctx(photos))
     src = made.outputs[0].path
-    print("\n| Compression level | Before (KB) | After (KB) | Saved |\n|---|---|---|---|")
+    print(f"\nPhoto PDF: {label}, JPEGs total {raw_kb:.0f} KB, PDF {src.stat().st_size / 1024:.0f} KB")
+    print("\n| Compression level | Before (KB) | After (KB) | Saved | Time (s) |\n|---|---|---|---|---|")
     for level in ("low", "medium", "high"):
+        t = time.perf_counter()
         r = compress.run([src], {"level": level}, ctx([src]))
+        secs = time.perf_counter() - t
         d = r.data
-        print(f"| {level} (5 photo pages) | {d['bytes_before'] / 1024:.0f} | {d['bytes_after'] / 1024:.0f} | {d['percent_saved']}% |")
+        print(f"| {level} ({label}) | {d['bytes_before'] / 1024:.0f} | {d['bytes_after'] / 1024:.0f} | {d['percent_saved']}% | {secs:.1f} |")
     r = compress.run([rep], {}, ctx([rep]))
     print(f"| medium (3p text-only report) | {r.data['bytes_before'] / 1024:.1f} | {r.data['bytes_after'] / 1024:.1f} | {r.data['percent_saved']}% |")
 

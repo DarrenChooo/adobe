@@ -44,9 +44,20 @@ def test_template_and_bulk(upload, run):
     assert reqs[1]["fields"][0]["page"] == 3
 
 
-def test_branding(run):
+def test_branding_and_custom_url(upload, run):
     run("esign", [], {"action": "branding_set", "company": "Sample Pte Ltd", "color": "#0055aa"})
     assert run("esign", [], {"action": "branding_get"})["data"]["branding"]["company"] == "Sample Pte Ltd"
+
+    assert not run("esign", [], {"action": "branding_set", "public_url": "sign.example.com"})["ok"]
+    run("esign", [], {"action": "branding_set", "public_url": "https://sign.example.com/"})
+    req = run("esign", [upload("a-report-3p.pdf")], {"action": "create", "signer_email": "u@example.com", "fields": BOXES})["data"]["requests"][0]
+    assert req["url"] == f"https://sign.example.com/sign/{req['id']}"
+    listed = run("esign", [], {"action": "list"})["data"]["requests"]
+    assert listed[0]["url"].startswith("https://sign.example.com/sign/")
+
+    run("esign", [], {"action": "branding_set", "public_url": ""})
+    req = run("esign", [upload("a-report-3p.pdf")], {"action": "create", "signer_email": "u@example.com", "fields": BOXES})["data"]["requests"][0]
+    assert req["url"] is None  # the UI falls back to its own address
 
 
 def test_bad_inputs(upload, run):
