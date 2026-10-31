@@ -33,13 +33,13 @@ SPECS = {
         "name": "Redact sensitive info",
         "tier": "pro",
         "adobe_feature": "Redact sensitive content",
-        "description": "Finds Singapore NRIC/FIN numbers, SG phone numbers and emails, and removes them for real (the page is rebuilt so the text is gone, then leak-tested). Audit mode checks any PDF for text hidden under black boxes.",
+        "description": "Finds Singapore NRIC/FIN numbers, SG phone numbers, emails and SG addresses (block, street, unit, postal code), and removes them for real (the page is rebuilt so the text is gone, then leak-tested). Audit mode checks any PDF for text hidden under black boxes.",
         "params_schema": {
             "type": "object",
             "properties": {
                 "mode": {"type": "string", "enum": ["detect", "apply", "audit"], "default": "detect",
                          "description": "detect = list what would be redacted; apply = produce the redacted PDF; audit = find text hidden under existing black boxes."},
-                "types": {"type": "array", "items": {"type": "string", "enum": ["nric", "phone", "email"]},
+                "types": {"type": "array", "items": {"type": "string", "enum": ["nric", "phone", "email", "address"]},
                           "description": "Which kinds to look for. Default: all."},
                 "exclude": {"type": "array", "items": {"type": "string"}, "description": "Detected item ids to leave visible."},
                 "extra_boxes": {"type": "array", "items": BOX, "description": "Extra areas to black out, in PDF points from the top-left."},

@@ -1,7 +1,7 @@
 """Redaction (Acrobat Pro: "Redact sensitive content").
 
 Modes (params["mode"]):
-  detect  find Singapore NRIC/FIN, SG phone numbers and emails; return boxes, no file
+  detect  find Singapore NRIC/FIN, SG phone numbers, emails and SG addresses; return boxes, no file
   apply   black out detected + manual boxes with TRUE removal: each affected page is
           rebuilt from a picture with the boxes painted in, so the text is gone from
           the file, then re-OCR'd so the rest of the page stays searchable
@@ -28,6 +28,18 @@ PATTERNS = {
     "phone": r"(?<![\d+])(?:\+65[\s-]?)?[3689]\d{3}[\s-]?\d{4}(?!\d)",
     "email": r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+",
 }
+
+# Singapore addresses. One alternation so a full address ("Blk 123 Example Street 45, #06-78,
+# Singapore 123456") becomes ONE box; a lone unit number or postal code is still caught on its own.
+_STREET_TYPE = (r"(?:Road|Rd|Street|St|Avenue|Ave|Drive|Dr|Lane|Ln|Crescent|Cres|Walk|Way|Close|Place|Pl|"
+                r"Link|Central|Rise|Hill|View|Park|Terrace|Grove|Boulevard|Square|Sq|Loop|Vale|Green)")
+_STREET_NAME = rf"(?:[A-Z][A-Za-z']*\s+){{1,4}}{_STREET_TYPE}\b(?:\s+\d{{1,3}}[A-Z]?)?"
+_BLOCK = r"(?:Blk|Block)\s*\d{1,4}[A-Z]?"
+_UNIT = r"#\d{1,3}-\d{1,5}[A-Z]?"
+_POSTAL = r"(?:Singapore\s*\d{6}(?!\d)|S\s?\(\d{6}\)|(?<![A-Za-z0-9])S\d{6}(?![A-Za-z0-9]))"
+_FULL = (rf"(?:{_BLOCK}\s+{_STREET_NAME}|\d{{1,4}}[A-Z]?\s+{_STREET_NAME})"
+         rf"(?:,?\s*{_UNIT})?(?:,?\s*{_POSTAL})?")
+PATTERNS["address"] = rf"{_FULL}|{_UNIT}|{_POSTAL}"
 PAD = 1.5  # points of padding around each detected box
 
 

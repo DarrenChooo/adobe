@@ -16,11 +16,20 @@
       "weiming.tan@example.com",
       "mei.ling@example.org"
     ],
+    "address": [
+      "Blk 123 Example Street 45, #06-78, Singapore 123456",
+      "Block 45A Sample Avenue 3, #12-345, S(560045)",
+      "88 Example Crescent, Singapore 588888",
+      "#03-21"
+    ],
     "decoys": [
       "12345678",
       "123456",
       "S12345",
-      "2026-10-31"
+      "2026-10-31",
+      "Room 5",
+      "Level 3",
+      "2 pm"
     ]
   },
   "planted_edits": 5,
