@@ -1,0 +1,37 @@
+{
+  "planted": {
+    "nric": [
+      "S1234567D",
+      "T0123456Z",
+      "F9876543N",
+      "G1122334K"
+    ],
+    "phone": [
+      "+65 9123 4567",
+      "8765 4321",
+      "91112222",
+      "6123 4567"
+    ],
+    "email": [
+      "weiming.tan@example.com",
+      "mei.ling@example.org"
+    ],
+    "decoys": [
+      "12345678",
+      "123456",
+      "S12345",
+      "2026-10-31"
+    ]
+  },
+  "planted_edits": 5,
+  "scan_text": [
+    "Fill Me sample: Application for Event Pass (all details are made up)",
+    "Applicant name: Tan Wei Ming",
+    "NRIC: S1234567D",
+    "Mobile: +65 9123 4567",
+    "Email: weiming.tan@example.com",
+    "Address: Blk 123 Example Street 45, #06-78, Singapore 123456",
+    "Emergency contact: Lim Mei Ling (sister), tel 8765 4321, NRIC T0123456Z",
+    "Invoice No. 12345678 dated 2026-10-31. Order ref S12345."
+  ]
+}
