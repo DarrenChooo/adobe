@@ -183,5 +183,5 @@ A **coverage page** (`/coverage`, built by A from `GET /api/tools`) shows sectio
 2. **DECIDED 31 Oct: AI provider = SoCLaaS** (free, OpenAI-compatible). Each person running AI features needs their own SoCLaaS key in a git-ignored `.env`. **[CHECK]** that every teammate who runs Person C's tools can get a key. Nobody has read SoCLaaS's privacy page yet, so demo with made-up personal data only.
 3. **DECIDED 31 Oct: name = "Fill Me".**
 4. **DECIDED 31 Oct: licence = MIT.** `LICENSE` file in hour one (Person A).
-5. **[DECIDE] Who is A, B, C**, and who owns the pitch numbers.
+5. **[DECIDE] Who is A, B, C**, and who owns the pitch numbers. A = Darren Choo (31 Oct). B, C and the pitch owner still to fill in.
 6. **[ASK ORGANISERS]** hackathon end time, demo length, and whether code written before today is allowed.

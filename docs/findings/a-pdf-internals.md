@@ -1,6 +1,6 @@
 # What we uncovered: how a PDF stores pages and forms, and what a password really protects
 
-Person A, SPEC section 4. Everything here comes from opening our sample files with pypdf. Reproduce it with `python docs/findings/a_measure.py` (output in [`a-numbers-raw.txt`](a-numbers-raw.txt)).
+Person A, SPEC section 4. Everything here comes from opening our sample files with pypdf. Reproduce it with `python docs/findings/a_measure.py` and `python docs/findings/a_figures.py` (output in [`a-numbers-raw.txt`](a-numbers-raw.txt)).
 
 ## 1. Pages are a tree of objects, not a list
 
@@ -17,7 +17,7 @@ Page 1 keys:  ['/Contents', '/MediaBox', '/Parent', '/Resources', '/Rotate', '/T
 
 **Why that makes Acrobat's "organize" tools cheap:**
 
-- *Merge, split, reorder and delete* only rewrite `/Kids` and copy the referenced objects. Nothing is re-rendered, which is why merging 53 pages takes about 15 ms.
+- *Merge, split, reorder and delete* only rewrite `/Kids` and copy the referenced objects. Nothing is re-rendered, which is why merging 53 pages takes about 11 ms.
 - *Rotate* only sets a page's `/Rotate` number (0/90/180/270). The page content is untouched.
 
 ## 2. Form fields have two names: one for machines, one for people
@@ -31,6 +31,8 @@ Form fields hang off the catalog in `/AcroForm → /Fields`. Each field is an ob
 | `/FT` | type: `/Tx` text, `/Btn` checkbox/radio, `/Ch` choice, `/Sig` signature | `/Tx` |
 | `/Rect` | where the box sits on the page, in points from the bottom-left | `[200, 700, 500, 720]` |
 | `/V` | the current value | (empty until filled) |
+
+![The sample form with each field's hidden /T name and its /TU tooltip](img/a-form-fields.png)
 
 All nine fields of `samples/a-form-fields.pdf`:
 
@@ -56,24 +58,41 @@ All nine fields of `samples/a-form-fields.pdf`:
 
 We protected the sample with AES-256 (`protect` tool) and looked at the raw bytes:
 
-| Check | Result |
-|---|---|
-| Body text "Quarterly Report" readable in the raw file | Original: **yes**. Protected: **no** |
-| Opens in pypdf without the password | **no** |
-| Opens in PDFium (Chrome's PDF engine) without the password | **no** ("Incorrect password") |
-| `/Type /Pages`, `/Count 3`, `/MediaBox` readable in the raw file | **yes, still plain text** |
+![Raw bytes of the original and the protected file side by side](img/a-protected-bytes.png)
+
+| Check | Original | Protected |
+|---|---|---|
+| Document title (`/Title (Quarterly Report…)`) readable in the raw bytes | **yes**, plain text | **no** |
+| Page text | zlib-compressed: one standard `decompress` call gives `(Quarterly Report \(sample\)) Tj` | **no**, AES-encrypted |
+| Opens in pypdf without the password | yes | **no** |
+| Opens in PDFium (Chrome's PDF engine) without the password | yes | **no** ("Incorrect password") |
+| `/Type /Pages`, `/Count 3`, `/MediaBox` readable in the raw bytes | yes | **yes, still plain text** |
 
 The `/Encrypt` dictionary we write is `/Filter /Standard /V 5 /R 6 /Length 256`, which is AES-256 as defined in PDF 2.0.
 
 **What's going on:**
 
-- Only **strings and streams** are encrypted: the page content, text, images and field values. The **object skeleton** stays readable, so anyone can see how many pages a protected file has, their sizes, and that it has form fields, without the password.
-- The "open" password (user password) is real cryptography. Without it the content is unreadable.
-- The **permission flags are not.** "No copying" and "no printing" are bits in the `/P` integer (ours: `0b…1001_1110_0111`, where bit 5 = copy is 0). Any program that has the open password can decrypt everything and simply ignore them. pypdf extracted the text of our "copy not allowed" file in one line. Permissions are a polite request to well-behaved viewers, not protection.
+- **A normal PDF only looks scrambled.** Its page text is compressed, not hidden, and the title and author sit in plain text.
+- **Only strings and streams are encrypted:** the page content, text, images, the title, and field values. The **object skeleton** stays readable, so anyone can see how many pages a protected file has, their sizes, and that it has form fields, without the password.
+- **The "open" password (user password) is real cryptography.** Without it the content is unreadable.
+- **The permission flags are not.** "No copying" and "no printing" are bits in the `/P` integer (ours, for print + comments only: `0b1111…1111_1001_1110_0111`, where bit 5 = copy is 0). Any program that has the open password can decrypt everything and simply ignore them. pypdf extracted the text of our "copy not allowed" file in one line. Permissions are a polite request to well-behaved viewers, not protection.
 
 **The honest message for users** (and our protect screen says so): rely on the password, not on the permissions.
 
-## 4. Coordinates: PDF counts from the bottom-left
+## 4. What our e-signature is (and isn't)
+
+![A page signed through Fill Me's e-sign loop, and the audit page added to it](img/a-signed-page.png)
+
+**What Fill Me's e-sign does:**
+
+- Draws the signature, name and date into the page content.
+- Appends an audit page: who signed, when, and the SHA-256 hash of the original file.
+- Keeps the full event log (created, viewed, signed, completed) in `storage/esign.db`.
+- Refuses to sign if the original file changed after the request was sent, because its hash no longer matches.
+
+**What it is not:** a certified digital signature. Acrobat's paid "certified" signatures embed a `/Sig` field holding a cryptographic signature from a certificate authority. We don't have one, and we say so on the signing page and on the audit page.
+
+## 5. Coordinates: PDF counts from the bottom-left
 
 PDF points run from the **bottom-left** corner (72 points per inch). Browsers count pixels from the **top-left**.
 

@@ -12,13 +12,14 @@ interface Box extends PlacedBox { kind: Kind }
 interface Req {
   id: string; title: string; message: string; file_id: string; status: string; signer_email: string; signer_name: string;
   link: string; created_at: string; viewed_at: string | null; signed_at: string | null;
-  signed_file_id: string | null; batch_id: string | null; fields: Box[];
+  signed_file_id: string | null; batch_id: string | null; fields: Box[]; url?: string | null;
 }
-interface Branding { company: string; color: string; logo: string | null }
+interface Branding { company: string; color: string; logo: string | null; public_url?: string }
 
 const SIZES: Record<Kind, [number, number]> = { signature: [0.3, 0.07], initials: [0.12, 0.05], date: [0.2, 0.03], name: [0.3, 0.03] };
 const LABEL: Record<Kind, string> = { signature: "Signature", initials: "Initials", date: "Date", name: "Full name" };
-const absolute = (link: string) => `${window.location.origin}${link}`;
+// The custom URL from Branding when the server set one, else this page's own address.
+const absolute = (r: { link: string; url?: string | null }) => r.url || `${window.location.origin}${r.link}`;
 
 function Send(props: ToolPanelProps & { onSent: () => void }) {
   const { run, busy } = useRun(props);
@@ -111,8 +112,8 @@ function LinkRow({ r }: { r: Req }) {
   const [copied, setCopied] = useState(false);
   return (
     <div className="row small">
-      <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>{r.signer_email}: <a href={r.link} target="_blank" rel="noreferrer">{absolute(r.link)}</a></span>
-      <button onClick={() => { navigator.clipboard?.writeText(absolute(r.link)); setCopied(true); }}>{copied ? "Copied" : "Copy"}</button>
+      <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>{r.signer_email}: <a href={r.link} target="_blank" rel="noreferrer">{absolute(r)}</a></span>
+      <button onClick={() => { navigator.clipboard?.writeText(absolute(r)); setCopied(true); }}>{copied ? "Copied" : "Copy"}</button>
     </div>
   );
 }
@@ -143,7 +144,7 @@ function Requests({ refresh }: { refresh: number }) {
               <td>{r.signer_name || r.signer_email}<br /><small className="muted">{r.signer_email}</small></td>
               <td><span className={`badge ${r.status}`}>{r.status}</span></td>
               <td className="row">
-                <button className="link" onClick={() => navigator.clipboard?.writeText(absolute(r.link))}>Copy link</button>
+                <button className="link" onClick={() => navigator.clipboard?.writeText(absolute(r))}>Copy link</button>
                 <button className="link" onClick={() => setOpen(open === r.id ? null : r.id)}>Audit</button>
                 {r.signed_file_id && <a className="link" href={fileUrl(r.signed_file_id, true)}>Signed PDF</a>}
               </td>
@@ -164,13 +165,16 @@ function Requests({ refresh }: { refresh: number }) {
 
 function BrandingForm(props: ToolPanelProps) {
   const { run, busy } = useRun(props);
-  const [b, setB] = useState<Branding>({ company: "", color: "#d6342c", logo: null });
+  const [b, setB] = useState<Branding>({ company: "", color: "#d6342c", logo: null, public_url: "" });
   useEffect(() => {
     api.runTool("esign", [], { action: "branding_get" }).then((r) => r.ok && setB(r.data.branding));
   }, []);
   return (
     <div className="stack">
       <label>Company name<input value={b.company} onChange={(e) => setB({ ...b, company: e.target.value })} /></label>
+      <label>Custom signing URL <small className="muted">(optional; where you host Fill Me, e.g. https://sign.example.com)</small>
+        <input value={b.public_url ?? ""} placeholder={window.location.origin} onChange={(e) => setB({ ...b, public_url: e.target.value })} />
+      </label>
       <label>Colour<input type="color" value={b.color} onChange={(e) => setB({ ...b, color: e.target.value })} /></label>
       <label>Logo
         <input type="file" accept="image/*" onChange={(e) => {

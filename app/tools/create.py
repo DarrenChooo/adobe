@@ -6,6 +6,7 @@ import re
 from pathlib import Path
 
 from PIL import Image, ImageOps
+from reportlab import rl_config
 from reportlab.lib.pagesizes import A4, LETTER, landscape
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import mm
@@ -19,10 +20,28 @@ IMAGE_EXT = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tif", ".tiff", ".webp"}
 TEXT_EXT = {".txt", ".md", ".markdown", ".text"}
 SIZES = {"A4": A4, "Letter": LETTER}
 
+# Store image data as raw binary, not ASCII85 text (which is 25% bigger).
+rl_config.useA85 = 0
+
 
 def _pagesize(params: dict):
     size = SIZES.get(params.get("page_size", "A4"), A4)
     return landscape(size) if params.get("landscape") else size
+
+
+def _image_source(p: Path):
+    """What to hand reportlab. An upright RGB/grey JPEG goes in as its own file,
+    so it's embedded as-is (DCTDecode) instead of decoded and stored losslessly,
+    which made photo PDFs ~5x bigger than the photos."""
+    raw = Image.open(p)
+    if raw.format == "JPEG" and raw.mode in ("RGB", "L") and raw.getexif().get(0x0112, 1) == 1:
+        return str(p), raw.size
+    img = ImageOps.exif_transpose(raw)
+    if img.mode not in ("RGB", "L"):
+        bg = Image.new("RGB", img.size, "white")
+        bg.paste(img, mask=img.convert("RGBA").split()[-1])
+        img = bg
+    return ImageReader(img), img.size
 
 
 def images_to_pdf(images: list[Path], out: Path, params: dict) -> int:
@@ -30,16 +49,11 @@ def images_to_pdf(images: list[Path], out: Path, params: dict) -> int:
     margin = float(params.get("margin_mm", 10)) * mm
     c = canvas.Canvas(str(out))
     for p in images:
-        img = ImageOps.exif_transpose(Image.open(p))
-        if img.mode not in ("RGB", "L"):
-            bg = Image.new("RGB", img.size, "white")
-            bg.paste(img, mask=img.convert("RGBA").split()[-1])
-            img = bg
-        iw, ih = img.size
+        src, (iw, ih) = _image_source(p)
         if fit == "image":
             pw, ph = iw * 72 / 150, ih * 72 / 150  # treat images as 150 dpi
             c.setPageSize((pw, ph))
-            c.drawImage(ImageReader(img), 0, 0, pw, ph)
+            c.drawImage(src, 0, 0, pw, ph)
         else:
             pw, ph = _pagesize(params)
             if params.get("auto_orient", True) and (iw > ih) != (pw > ph):
@@ -47,7 +61,7 @@ def images_to_pdf(images: list[Path], out: Path, params: dict) -> int:
             c.setPageSize((pw, ph))
             scale = min((pw - 2 * margin) / iw, (ph - 2 * margin) / ih)
             w, h = iw * scale, ih * scale
-            c.drawImage(ImageReader(img), (pw - w) / 2, (ph - h) / 2, w, h)
+            c.drawImage(src, (pw - w) / 2, (ph - h) / 2, w, h)
         c.showPage()
     c.save()
     return len(images)

@@ -2,6 +2,8 @@ import io
 
 from pypdf import PdfReader
 
+from conftest import SAMPLES
+
 
 def test_images_to_pdf(upload, run, fetch):
     res = run("create", [upload("a-photo.jpg"), upload("a-photo.jpg")])
@@ -9,6 +11,16 @@ def test_images_to_pdf(upload, run, fetch):
     r = PdfReader(io.BytesIO(fetch(res["outputs"][0]["file_id"])))
     assert len(r.pages) == 2
     assert r.pages[0].mediabox.width > r.pages[0].mediabox.height  # landscape photo -> landscape page
+
+
+def test_jpeg_embedded_as_is(upload, run, fetch):
+    res = run("create", [upload("a-photo.jpg")])
+    r = PdfReader(io.BytesIO(fetch(res["outputs"][0]["file_id"])))
+    xobj = r.pages[0].images[0].indirect_reference.get_object()
+    filters = xobj["/Filter"] if isinstance(xobj["/Filter"], list) else [xobj["/Filter"]]
+    assert filters == ["/DCTDecode"]  # the JPEG itself, not a re-encoded copy
+    photo_size = (SAMPLES / "a-photo.jpg").stat().st_size
+    assert len(fetch(res["outputs"][0]["file_id"])) < photo_size * 1.1
 
 
 def test_markdown_file_to_pdf(upload, run, fetch):
