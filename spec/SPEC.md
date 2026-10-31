@@ -20,14 +20,14 @@ A free, open-source web app that does what people pay Adobe Acrobat for, across 
 
 | Plan | Annual plan, paid monthly | Per year (prepaid) | Monthly, no contract |
 |---|---|---|---|
-| Acrobat Standard | US$14.99/mo (one page only, recheck) | US$179.88 | US$24.99 |
+| Acrobat Standard | US$14.99/mo | US$179.88 | US$24.99 |
 | Acrobat Pro | US$19.99/mo | US$239.88 | US$29.99 |
-| Acrobat Studio | US$24.99/mo (one page only, recheck) | US$299.88 | US$34.99 |
+| Acrobat Studio | US$24.99/mo | US$299.88 | US$34.99 |
 | Pro for teams | US$23.99/mo per licence | US$287.88 | |
 | AI Assistant Plus add-on | US$4.99/mo (shown on the Pro page) | | |
 
 Sources: https://www.adobe.com/acrobat/pricing.html and https://www.adobe.com/acrobat/acrobat-pro.html. Singapore prices may differ.
-**Not yet sourced:** how many people use Acrobat. The pitch owner finds an official Adobe figure before anyone quotes one.
+Prices rechecked 31 Oct. **Users:** Adobe reports over 900 million monthly active users across Acrobat and Express, including free users. Wording, sources and what not to claim are in `docs/findings/pitch-numbers.md`.
 
 ## 3. Feature coverage: every paid Acrobat feature mapped to an owner
 
@@ -184,4 +184,4 @@ A **coverage page** (`/coverage`, built by A from `GET /api/tools`) shows sectio
 3. **DECIDED 31 Oct: name = "Fill Me".**
 4. **DECIDED 31 Oct: licence = MIT.** `LICENSE` file in hour one (Person A).
 5. **[DECIDE] Who is A, B, C**, and who owns the pitch numbers.
-6. **[ASK ORGANISERS]** hackathon end time, demo length, and whether code written before today is allowed.
+6. **ANSWERED 31 Oct: submit by 4:15pm, and code written before today is not allowed.** So feature freeze is 2:45pm and rehearsal 3:45pm. **[ASK ORGANISERS]** demo length is still open.
