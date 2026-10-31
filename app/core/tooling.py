@@ -117,6 +117,10 @@ def run_tool(spec: ToolSpec, inputs: list[Path], params: dict, ctx: RunContext) 
     except Exception as e:  # noqa: BLE001
         log.exception("Tool %s failed", spec.id)
         return ToolResult(ok=False, message=f"{type(e).__name__}: {e}")
+    if isinstance(result, dict) and "ok" in result:
+        # Plain {ok, message, outputs, data} dicts are accepted too (SPEC 5.1 shape).
+        result = ToolResult(ok=bool(result["ok"]), message=result.get("message", ""),
+                            outputs=list(result.get("outputs") or []), data=result.get("data") or {})
     if not isinstance(result, ToolResult):
         return ToolResult(ok=False, message=f"Tool {spec.id} returned {type(result).__name__}, not ToolResult.")
     return result

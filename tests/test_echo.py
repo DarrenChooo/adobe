@@ -18,6 +18,17 @@ def test_echo_roundtrip(upload, run, fetch):
     assert fetch(out["file_id"]) == fetch(fid)
 
 
+def test_run_wrapper_accepts_dict_results(tmp_path):
+    from app.core.tooling import RunContext, ToolSpec, run_tool
+
+    f = tmp_path / "x.txt"
+    f.write_text("hi")
+    spec = ToolSpec(id="d", name="d", tier="ours", adobe_feature="", description="", params_schema={},
+                    run=lambda i, p, c: {"ok": True, "message": "m", "outputs": [{"path": str(f), "filename": "x.txt", "mime": "text/plain"}], "data": {}})
+    res = run_tool(spec, [], {}, RunContext(tmp_path, [], []))
+    assert res.ok and res.message == "m" and res.outputs[0]["filename"] == "x.txt"
+
+
 def test_unknown_tool_and_file(client):
     assert client.post("/api/tools/nope", json={"file_ids": []}).status_code == 404
     assert client.post("/api/tools/echo", json={"file_ids": ["0" * 32]}).status_code == 404

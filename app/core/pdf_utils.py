@@ -60,17 +60,39 @@ def page_size(path: Path | str, page: int = 0) -> tuple[float, float]:
         doc.close()
 
 
-def text_with_boxes(path: Path | str, page: int = 0) -> list[dict]:
+def text_with_boxes(path: Path | str, page: int = 0, password: str | None = None) -> list[dict]:
     """Words on a page (0-based) with boxes in PDF points, origin at the TOP-left
-    (pdfplumber's convention): [{text, x0, top, x1, bottom}]."""
-    import pdfplumber
-
-    with pdfplumber.open(str(path)) as pdf:
-        p = pdf.pages[page]
-        return [
-            {"text": w["text"], "x0": w["x0"], "top": w["top"], "x1": w["x1"], "bottom": w["bottom"]}
-            for w in p.extract_words()
-        ]
+    (pdfplumber's convention): [{text, x0, top, x1, bottom}]. Uses pypdfium2 only."""
+    doc = pdfium.PdfDocument(str(path), password=password)
+    try:
+        pg = doc[page]
+        height = pg.get_size()[1]
+        bottom_edge = pg.get_cropbox()[1]
+        tp = pg.get_textpage()
+        try:
+            words: list[dict] = []
+            cur: dict | None = None
+            for i in range(tp.count_chars()):
+                ch = tp.get_text_range(i, 1)
+                if not ch or ch.isspace() or ch in "\r\n\x02￾":
+                    cur = None
+                    continue
+                l, b, r, t = tp.get_charbox(i, loose=True)  # full font height, not the glyph's ink
+                top, bot = height - (t - bottom_edge), height - (b - bottom_edge)
+                # Same line and touching the previous char -> same word.
+                if cur and abs(cur["top"] - top) < 2 and l - cur["x1"] < 0.15 * (bot - top):
+                    cur["text"] += ch
+                    cur["x1"] = max(cur["x1"], r)
+                    cur["top"] = min(cur["top"], top)
+                    cur["bottom"] = max(cur["bottom"], bot)
+                else:
+                    cur = {"text": ch, "x0": l, "top": top, "x1": r, "bottom": bot}
+                    words.append(cur)
+            return words
+        finally:
+            tp.close()
+    finally:
+        doc.close()
 
 
 def page_text(path: Path | str, page: int = 0) -> str:
