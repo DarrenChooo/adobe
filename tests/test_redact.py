@@ -59,3 +59,18 @@ def test_address_is_one_box_per_address(samples):
 def test_address_can_be_switched_off(samples):
     res = redact.run([samples["letter"]], {"mode": "detect", "types": ["nric", "phone", "email"]}, samples["out"])
     assert not any(h["type"] == "address" for h in res["data"]["hits"])
+
+
+def test_phone_photo_is_ocrd_and_fully_redacted(samples, tmp_path):
+    """Fake phone photo (tilt, keystone, shadow, blur, noise, JPEG) of letter page 1."""
+    from PIL import Image
+    from tests import b_photo
+    jpg = b_photo.make(samples["letter"], tmp_path / "photo.jpg")
+    pdf = tmp_path / "photo.pdf"
+    Image.open(jpg).convert("RGB").save(pdf, resolution=160)
+    res = redact.run([pdf], {"mode": "apply"}, samples["out"])
+    assert res["ok"] and res["data"]["ocr_first"] and res["data"]["leak_test"] == "pass"
+    assert res["data"]["by_type"] == {"nric": 2, "phone": 2, "email": 1, "address": 1}, res["data"]["by_type"]
+    text = all_text(res["outputs"][0]["path"])[0].replace(" ", "")
+    for v in ("S1234567D", "T0123456Z", "+6591234567", "87654321", "weiming.tan@example.com", "ExampleStreet"):
+        assert v not in text, v

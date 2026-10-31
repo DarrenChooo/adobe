@@ -34,7 +34,8 @@ PATTERNS = {
 _STREET_TYPE = (r"(?:Road|Rd|Street|St|Avenue|Ave|Drive|Dr|Lane|Ln|Crescent|Cres|Walk|Way|Close|Place|Pl|"
                 r"Link|Central|Rise|Hill|View|Park|Terrace|Grove|Boulevard|Square|Sq|Loop|Vale|Green)")
 _STREET_NAME = rf"(?:[A-Z][A-Za-z']*\s+){{1,4}}{_STREET_TYPE}\b(?:\s+\d{{1,3}}[A-Z]?)?"
-_BLOCK = r"(?:Blk|Block)\s*\d{1,4}[A-Z]?"
+# "Bik"/"B1k" are common OCR misreads of "Blk" (seen on our phone-photo sample).
+_BLOCK = r"(?:Blk|Bik|B1k|Block)\s*\d{1,4}[A-Z]?"
 _UNIT = r"#\d{1,3}-\d{1,5}[A-Z]?"
 _POSTAL = r"(?:Singapore\s*\d{6}(?!\d)|S\s?\(\d{6}\)|(?<![A-Za-z0-9])S\d{6}(?![A-Za-z0-9]))"
 _FULL = (rf"(?:{_BLOCK}\s+{_STREET_NAME}|\d{{1,4}}[A-Z]?\s+{_STREET_NAME})"
