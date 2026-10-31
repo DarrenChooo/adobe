@@ -4,6 +4,19 @@ import SignaturePad from "../components/SignaturePad";
 import { useRun } from "../components/useRun";
 import type { ToolPaneProps, ToolUI } from "./registry";
 
+type Anchor = { page: number; x: number; y: number; w: number; h: number } | null;
+interface Stamp extends PlacedBox { kind: "image" | "text"; text?: string }
+
+// Signatures you've saved with before, newest first. Kept in this browser only.
+const SIGS_KEY = "fillme.signatures";
+function loadSigs(): string[] {
+  try { return JSON.parse(localStorage.getItem(SIGS_KEY) ?? "[]"); } catch { return []; }
+}
+function rememberSig(sig: string) {
+  try { localStorage.setItem(SIGS_KEY, JSON.stringify([sig, ...loadSigs().filter((s) => s !== sig)].slice(0, 5))); } catch {}
+}
+const today = () => new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+
 interface Field {
   name: string;
   tooltip: string | null;
@@ -20,8 +33,11 @@ function FillSignPane(props: ToolPaneProps) {
   const id = props.file.file_id;
   const [fields, setFields] = useState<Field[]>([]);
   const [values, setValues] = useState<Record<string, string | boolean>>({});
-  const [sig, setSig] = useState<string | null>(null);
-  const [stamps, setStamps] = useState<PlacedBox[]>([]);
+  const [saved, setSaved] = useState<string[]>(loadSigs);
+  const [sig, setSig] = useState<string | null>(() => loadSigs()[0] ?? null);
+  const [stamps, setStamps] = useState<Stamp[]>([]);
+  const [anchors, setAnchors] = useState<{ signature: Anchor; date: Anchor }>({ signature: null, date: null });
+  const [dateText, setDateText] = useState(today);
   const [flatten, setFlatten] = useState(false);
   const [loadMsg, setLoadMsg] = useState("Reading the form...");
   const [loadOk, setLoadOk] = useState(true);
@@ -35,8 +51,24 @@ function FillSignPane(props: ToolPaneProps) {
       const fs: Field[] = r.data.fields;
       setFields(fs);
       setValues(Object.fromEntries(fs.map((f) => [f.name, f.type === "checkbox" ? !!f.value && f.value !== "/Off" : f.value ?? ""])));
+      const a = r.data.anchors ?? { signature: null, date: null };
+      setAnchors(a);
+      // Autofill: drop your last signature and today's date onto the form's Signature/Date lines.
+      const last = loadSigs()[0];
+      const auto: Stamp[] = [];
+      if (last && a.signature) auto.push({ ...a.signature, kind: "image", image: last });
+      if (last && a.date) auto.push({ ...a.date, kind: "text", text: today(), editable: true });
+      setStamps(auto);
     }).catch((e: Error) => { setLoadMsg(e.message); setLoadOk(false); });
   }, [api, id]);
+
+  const addDate = () =>
+    setStamps((s) => [...s, { ...(anchors.date ?? { page: 1, x: 0.6, y: 0.85, w: 0.16, h: 0.025 }), kind: "text", text: dateText, editable: true }]);
+  const useSig = (s: string) => {
+    setSig(s);
+    // Swap the picked signature into any signature already on the page.
+    setStamps((st) => st.map((x) => (x.kind === "image" ? { ...x, image: s } : x)));
+  };
 
   const changed = Object.fromEntries(
     Object.entries(values).filter(([k, v]) => {
@@ -53,8 +85,10 @@ function FillSignPane(props: ToolPaneProps) {
         <PagePlacer
           fileId={id}
           boxes={stamps}
-          onPlace={(page, x, y) => sig && setStamps((s) => [...s, { ...boxAt(page, x, y, 0.3, 0.07), image: sig }])}
+          onPlace={(page, x, y) => sig && setStamps((s) => [...s, { ...boxAt(page, x, y, 0.3, 0.07), kind: "image", image: sig }])}
           onRemove={(i) => setStamps((s) => s.filter((_, j) => j !== i))}
+          onMove={(i, x, y) => setStamps((s) => s.map((b, j) => (j === i ? { ...b, x, y } : b)))}
+          onEdit={(i, t) => setStamps((s) => s.map((b, j) => (j === i ? { ...b, text: t } : b)))}
         />
       </Stage>
 
@@ -89,28 +123,56 @@ function FillSignPane(props: ToolPaneProps) {
 
       <div className="step">
         <h4>2. Sign</h4>
-        <SignaturePad onChange={setSig} />
+        {saved.length > 0 && (
+          <div className="stack">
+            <span className="hint">Your saved signatures (click one to use it)</span>
+            <div className="row" style={{ flexWrap: "wrap", gap: 6 }}>
+              {saved.map((s) => (
+                <button key={s} type="button" onClick={() => useSig(s)} title="Use this signature"
+                  style={{ padding: 4, background: "#fff", borderRadius: 6, border: s === sig ? "2px solid var(--blue)" : "1px solid #ccc", cursor: "pointer" }}>
+                  <img src={s} alt="Saved signature" style={{ height: 36, display: "block" }} />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        <SignaturePad onChange={(s) => s && setSig(s)} />
         <div className={`msg ${sig ? "info" : ""}`} style={sig ? undefined : { padding: 0 }}>
-          {sig ? "Now click the page where your signature goes." : <span className="hint">Draw or type a signature, then click the page to place it.</span>}
+          {sig ? "Click the page to place your signature. Drag it to move." : <span className="hint">Draw or type a signature, then click the page to place it.</span>}
         </div>
-        {stamps.length ? <p className="hint">{stamps.length} signature{stamps.length === 1 ? "" : "s"} placed. Use × to remove one.</p> : null}
+
+        <div className="row" style={{ gap: 6, alignItems: "center" }}>
+          <input className="inp" value={dateText} onChange={(e) => setDateText(e.target.value)} aria-label="Date to add" style={{ flex: 1 }} />
+          <button type="button" className="btn" onClick={addDate}>Add date</button>
+        </div>
+        {stamps.length ? (
+          <p className="hint">
+            {stamps.filter((s) => s.kind === "image").length} signature(s), {stamps.filter((s) => s.kind === "text").length} date(s) on the page
+            {anchors.signature || anchors.date ? ", placed on the form's Signature/Date lines" : ""}. Drag to move, × to remove.
+          </p>
+        ) : null}
       </div>
 
       <div className="step">
         <button
           className="btn primary block"
           disabled={busy || (!nChanged && !stamps.length)}
-          onClick={() => run("fill_sign", [id], {
-            action: "fill",
-            values: changed,
-            flatten,
-            stamps: stamps.map(({ page, x, y, w, h, image }) => ({ page, x, y, w, h, kind: "image", image })),
-          })}
+          onClick={() => {
+            stamps.forEach((s) => s.kind === "image" && s.image && rememberSig(s.image));
+            setSaved(loadSigs());
+            run("fill_sign", [id], {
+              action: "fill",
+              values: changed,
+              flatten,
+              stamps: stamps.map(({ page, x, y, w, h, kind, image, text }) =>
+                kind === "image" ? { page, x, y, w, h, kind, image } : { page, x, y, w, h, kind, text, font_size: 11 }),
+            });
+          }}
         >
           {busy ? "Saving..." : "Save"}
         </button>
         <p className="hint">
-          {nChanged} field{nChanged === 1 ? "" : "s"} changed, {stamps.length} signature{stamps.length === 1 ? "" : "s"} placed.
+          {nChanged} field{nChanged === 1 ? "" : "s"} changed, {stamps.length} item{stamps.length === 1 ? "" : "s"} on the page.
         </p>
       </div>
     </>

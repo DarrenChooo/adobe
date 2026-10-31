@@ -1,14 +1,16 @@
 """fill_sign: list a PDF's form fields, fill them by hand, and place a signature.
 
 action=list -> data.fields: [{name, tooltip, type, value, options, page, rect}]
+               data.anchors: {signature, date} -> where a "Signature:" / "Date:" line is, or null
 action=fill -> values {field name: value}, stamps [{page, x, y, w, h, kind, image|text}]
 """
+import re
 from pathlib import Path
 
 from pypdf import PdfReader, PdfWriter
 from pypdf.generic import NameObject
 
-from app.core.pdf_utils import open_pdf
+from app.core.pdf_utils import open_pdf, page_size, text_with_boxes
 from app.core.stamp import apply_stamps
 from app.core.tooling import Output, RunContext, ToolError, ToolResult, ToolSpec
 
@@ -97,13 +99,42 @@ def fill(reader: PdfReader, values: dict, flatten: bool) -> PdfWriter:
     return writer
 
 
+# Box size (fractions of the page) for each kind of stamp placed on a label's line.
+_ANCHOR_SIZE = {"signature": (0.3, 0.07), "date": (0.16, 0.025)}
+_LABEL = {"signature": re.compile(r"^signature:?$", re.I), "date": re.compile(r"^date:?$", re.I)}
+
+
+def find_anchors(path: Path, n_pages: int) -> dict:
+    """Where a signature and a date should go: just right of the last "Signature"
+    and "Date" label in the document, sitting on that label's line. "Date of birth"
+    and similar don't count. Boxes use the same top-left fractions as stamps."""
+    found: dict = {"signature": None, "date": None}
+    try:
+        for p in range(n_pages):
+            words = text_with_boxes(path, p)
+            pw, ph = page_size(path, p)
+            for i, w in enumerate(words):
+                nxt = words[i + 1]["text"].lower() if i + 1 < len(words) else ""
+                for kind, rx in _LABEL.items():
+                    if not rx.match(w["text"]) or nxt in ("of", "signed", "issued", "received"):
+                        continue
+                    bw, bh = _ANCHOR_SIZE[kind]
+                    x = min((w["x1"] + 8) / pw, 1 - bw)
+                    y = max(0.0, (w["bottom"] + 2) / ph - bh)
+                    found[kind] = {"page": p + 1, "x": x, "y": y, "w": bw, "h": bh}
+    except Exception:
+        pass  # anchors are a convenience; never fail the field list over them
+    return found
+
+
 def run(inputs: list[Path], params: dict, ctx: RunContext) -> ToolResult:
     reader = open_pdf(inputs[0], params.get("password"))
     action = params.get("action", "fill")
     if action == "list":
         fields = list_fields(reader)
         msg = f"Found {len(fields)} form field(s)." if fields else "No fillable fields. You can still place a signature or text."
-        return ToolResult(ok=True, message=msg, data={"fields": fields, "pages": len(reader.pages)})
+        return ToolResult(ok=True, message=msg, data={"fields": fields, "pages": len(reader.pages),
+                                                      "anchors": find_anchors(inputs[0], len(reader.pages))})
 
     values = params.get("values") or {}
     stamps = params.get("stamps") or []
