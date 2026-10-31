@@ -51,7 +51,7 @@ export default function PublicForm() {
               f.type === "checkbox" ? (
                 <label key={f.name} className="check">
                   <input id={`pf-${f.name}`} type="checkbox" checked={answers[f.name] === true}
-                    onChange={(e) => setAnswers({ ...answers, [f.name]: e.target.checked })} /> {f.label}
+                    onChange={(e) => setAnswers({ ...answers, [f.name]: e.target.checked })} /> {f.label}{f.required ? " *" : ""}
                 </label>
               ) : f.type === "choice" || f.type === "radio" ? (
                 <label key={f.name} className="field">
