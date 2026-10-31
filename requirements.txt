@@ -1,0 +1,14 @@
+# Shared: append only. Permissive licences only (SPEC 5.2).
+# Person A: platform + Standard tools
+fastapi>=0.115
+uvicorn[standard]>=0.30
+python-multipart>=0.0.9
+pypdf>=5.0
+cryptography>=42
+pypdfium2>=4.30
+pdfplumber>=0.11
+reportlab>=4.2
+Pillow>=10.4
+Markdown>=3.6
+pytest>=8.0
+httpx>=0.27
