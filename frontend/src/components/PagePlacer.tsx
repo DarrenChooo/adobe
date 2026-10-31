@@ -1,4 +1,5 @@
 import PdfPreview from "./PdfPreview";
+import "../tools/pro/pro.css";
 
 export interface PlacedBox {
   page: number;
@@ -21,15 +22,15 @@ interface Props {
   width?: number;
 }
 
-/** A PDF preview you click on to drop boxes (signatures, fields, notes). */
-export default function PagePlacer({ fileId, boxes, onPlace, onRemove, width = 420 }: Props) {
+/** A PDF you click on to drop boxes (signatures, fields, notes). Put it inside <Stage>. */
+export default function PagePlacer({ fileId, boxes, onPlace, onRemove, width = 680 }: Props) {
   return (
-    <div className="placer">
+    <div className="pro-placer">
       <PdfPreview
         fileId={fileId}
         width={width}
         onPageClick={(page, x, y, e) => {
-          if ((e.target as HTMLElement).closest(".place-box")) return;
+          if ((e.target as HTMLElement).closest(".pro-place")) return;
           onPlace(page, x, y);
         }}
         overlay={(page) =>
@@ -37,14 +38,14 @@ export default function PagePlacer({ fileId, boxes, onPlace, onRemove, width = 4
             b.page === page ? (
               <div
                 key={i}
-                className="place-box"
+                className="pro-place"
                 style={{
                   left: `${b.x * 100}%`, top: `${b.y * 100}%`, width: `${b.w * 100}%`, height: `${b.h * 100}%`,
                   ...(b.color ? { borderColor: b.color, color: b.color, background: `${b.color}22` } : {}),
                 }}
               >
                 {b.image ? <img src={b.image} alt="" /> : b.label}
-                <button type="button" title="Remove" onClick={(e) => { e.stopPropagation(); onRemove(i); }}>×</button>
+                <button type="button" title="Remove" aria-label="Remove" onClick={(e) => { e.stopPropagation(); onRemove(i); }}>×</button>
               </div>
             ) : null,
           )

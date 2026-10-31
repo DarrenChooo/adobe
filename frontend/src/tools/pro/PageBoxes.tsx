@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { PointerEvent as RPointerEvent } from "react";
 import type { Box } from "./types";
+import "./pro.css";
 
 type Props = {
   pages: string[];                                   // image URLs rendered at 72 dpi (1 px = 1 pt)
@@ -9,8 +10,9 @@ type Props = {
   onDraw?: (box: Omit<Box, "id">) => void;           // drag on a page to draw a new box
 };
 
-type Draft = { page: number; sx: number; sy: number; x: number; y: number; scale: number };
+type Draft = { page: number; sx: number; sy: number; x: number; y: number };
 
+/** Page images, each on a white sheet, with boxes drawn over them. Goes inside <Stage>. */
 export default function PageBoxes({ pages, boxes, onToggle, onDraw }: Props) {
   const [scales, setScales] = useState<Record<number, number>>({});
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -21,19 +23,19 @@ export default function PageBoxes({ pages, boxes, onToggle, onDraw }: Props) {
   };
 
   return (
-    <div className="pro-pages">
+    <>
       {pages.map((src, i) => {
         const page = i + 1;
         const s = scales[page] ?? 1;
         return (
           <div
             key={src}
-            className="pro-page"
+            className={`sheet pro-page${onDraw ? " draw" : ""}`}
             onPointerDown={(e) => {
               if (!onDraw || (e.target as HTMLElement).classList.contains("pro-box")) return;
               e.currentTarget.setPointerCapture(e.pointerId);
               const p = pointFrom(e, s);
-              setDraft({ page, sx: p.x, sy: p.y, x: p.x, y: p.y, scale: s });
+              setDraft({ page, sx: p.x, sy: p.y, x: p.x, y: p.y });
             }}
             onPointerMove={(e) => {
               if (draft && draft.page === page) {
@@ -58,6 +60,7 @@ export default function PageBoxes({ pages, boxes, onToggle, onDraw }: Props) {
             <img
               src={src}
               alt={`Page ${page}`}
+              draggable={false}
               onLoad={(e) => {
                 const img = e.currentTarget;
                 setScales((prev) => ({ ...prev, [page]: img.clientWidth / img.naturalWidth }));
@@ -69,7 +72,7 @@ export default function PageBoxes({ pages, boxes, onToggle, onDraw }: Props) {
                 <div
                   key={b.id}
                   className={`pro-box${b.muted ? " muted" : ""}`}
-                  title={b.label}
+                  title={b.muted ? "Kept visible. Click to hide it again." : "Click to keep this visible"}
                   onClick={() => onToggle?.(b.id)}
                   style={{ left: b.x0 * s, top: b.top * s, width: (b.x1 - b.x0) * s, height: (b.bottom - b.top) * s,
                     cursor: onToggle ? "pointer" : "default" }}
@@ -91,6 +94,6 @@ export default function PageBoxes({ pages, boxes, onToggle, onDraw }: Props) {
           </div>
         );
       })}
-    </div>
+    </>
   );
 }

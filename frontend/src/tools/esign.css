@@ -1,0 +1,6 @@
+/* e-signature screens */
+.esign-brand { display: flex; align-items: center; gap: 12px; color: #fff; border-radius: var(--r-lg); padding: 14px 18px; }
+.esign-brand img { height: 36px; width: auto; border-radius: 4px; background: #fff; }
+.esign-brand strong { font-size: 16px; }
+.esign-link a { word-break: break-all; text-decoration: none; }
+.esign-doc { background: var(--canvas); border-radius: var(--r-lg); padding: 20px 0 4px; overflow: auto; }

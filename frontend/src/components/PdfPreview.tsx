@@ -16,7 +16,7 @@ interface Props {
 export default function PdfPreview({ fileId, width = 520, page, overlay, onPageClick }: Props) {
   const [pages, setPages] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  if (!fileId) return <div className="empty">Select a file to preview it.</div>;
+  if (!fileId) return <div className="empty-state">Select a file to preview it.</div>;
   const list = page ? [page] : Array.from({ length: pages }, (_, i) => i + 1);
   return (
     <Document
@@ -28,14 +28,15 @@ export default function PdfPreview({ fileId, width = 520, page, overlay, onPageC
       }}
       onLoadError={(e) => setError(e.message)}
       onPassword={() => setError("This PDF is password-protected, so it can't be previewed. Unlock it first.")}
-      error={<div className="empty">{error ?? "This file isn't a PDF that can be previewed."}</div>}
-      loading={<div className="empty">Loading…</div>}
+      error={<div className="empty-state">{error ?? "This file isn't a PDF that can be previewed."}</div>}
+      loading={<div className="empty-state">Loading…</div>}
     >
-      {error && <div className="empty">{error}</div>}
+      {error && <div className="empty-state">{error}</div>}
       {list.map((n) => (
         <div
           key={n}
           className="page-wrap"
+          data-page={n}
           onClick={
             onPageClick
               ? (e) => {

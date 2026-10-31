@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import "../tools/pro/pro.css";
 
 interface Props {
   /** Called with a transparent PNG data URL, or null when cleared. */
@@ -41,17 +42,17 @@ export default function SignaturePad({ onChange, width = 360, height = 120 }: Pr
   };
 
   return (
-    <div className="sigpad">
-      <div className="tabs">
-        <button type="button" className={mode === "draw" ? "active" : ""} onClick={() => { setMode("draw"); clear(); }}>Draw</button>
-        <button type="button" className={mode === "type" ? "active" : ""} onClick={() => { setMode("type"); clear(); }}>Type</button>
+    <div className="stack pro-sigpad">
+      <div className="seg">
+        <button type="button" className={mode === "draw" ? "on" : ""} onClick={() => { setMode("draw"); clear(); }}>Draw</button>
+        <button type="button" className={mode === "type" ? "on" : ""} onClick={() => { setMode("type"); clear(); }}>Type</button>
       </div>
-      {mode === "type" && <input placeholder="Type your name" value={typed} onChange={(e) => setTyped(e.target.value)} />}
+      {mode === "type" && <input className="inp" placeholder="Type your name" value={typed} onChange={(e) => setTyped(e.target.value)} />}
       <canvas
         ref={canvas}
         width={width}
         height={height}
-        style={{ touchAction: "none", maxWidth: "100%" }}
+        aria-label={mode === "draw" ? "Draw your signature here" : "Signature preview"}
         onPointerDown={(e) => {
           if (mode !== "draw") return;
           drawing.current = true;
@@ -78,7 +79,10 @@ export default function SignaturePad({ onChange, width = 360, height = 120 }: Pr
           if (dirty.current) onChange(canvas.current!.toDataURL("image/png"));
         }}
       />
-      <button type="button" className="link" onClick={() => { setTyped(""); clear(); }}>Clear</button>
+      <div className="row">
+        <span className="hint" style={{ flex: 1 }}>{mode === "draw" ? "Sign in the box above." : "Your name is drawn in a signature style."}</span>
+        <button type="button" className="link-btn" onClick={() => { setTyped(""); clear(); }}>Clear</button>
+      </div>
     </div>
   );
 }

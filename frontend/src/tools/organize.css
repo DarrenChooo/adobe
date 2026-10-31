@@ -1,0 +1,14 @@
+/* Organize pages: thumbnail cards in the centre stage. */
+.organize-doc { align-self: stretch; display: flex; justify-content: center; }
+.organize-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 10px; display: flex; flex-direction: column; gap: 6px; cursor: grab; }
+.organize-card.dragging { opacity: 0.4; }
+.organize-card.over { border-color: var(--blue); box-shadow: 0 0 0 2px var(--blue-soft); }
+.organize-card.deleted .organize-thumb { opacity: 0.3; }
+.organize-card.deleted .organize-label { color: var(--fail); }
+.organize-thumb { height: 180px; background: var(--canvas); border-radius: var(--r-sm); display: grid; place-items: center; overflow: hidden; }
+.organize-thumb canvas { box-shadow: var(--shadow-page); display: block; }
+.organize-label { font-size: 12px; font-weight: 600; color: var(--ink-2); text-align: center; }
+.organize-tools { display: flex; justify-content: space-between; gap: 4px; }
+.organize-tools button { flex: 1; height: 28px; border: 1px solid var(--line); background: var(--panel); border-radius: var(--r-md); font-size: 14px; }
+.organize-tools button:hover:not(:disabled) { background: var(--app); }
+.organize-tools button:disabled { opacity: 0.35; cursor: default; }
