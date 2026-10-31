@@ -15,6 +15,7 @@ import csv
 import hashlib
 import io
 import json
+import re
 import sqlite3
 import uuid
 from datetime import datetime, timezone
@@ -82,7 +83,23 @@ def _get(con, rid: str) -> sqlite3.Row:
 
 def _branding(con) -> dict:
     r = con.execute("select value from settings where key='branding'").fetchone()
-    return json.loads(r["value"]) if r else {"company": "", "color": "#d6342c", "logo": None}
+    return json.loads(r["value"]) if r else {"company": "", "color": "#d6342c", "logo": None, "public_url": ""}
+
+
+def _with_urls(con, reqs: list[dict]) -> list[dict]:
+    """Full signing URL per request, on the sender's custom address when one is set
+    (Pro's "custom URL on agreements"). None means: use the page's own origin."""
+    base = _branding(con).get("public_url") or ""
+    for d in reqs:
+        d["url"] = base + d["link"] if base else None
+    return reqs
+
+
+def _clean_url(url: str) -> str:
+    url = (url or "").strip().rstrip("/")
+    if url and not re.match(r"^https?://[^\s/]+(/[^\s]*)?$", url):
+        raise ToolError("The custom URL must start with http:// or https://, e.g. https://sign.example.com")
+    return url
 
 
 def _validate_fields(fields: list[dict]) -> list[dict]:
@@ -252,7 +269,7 @@ def run(inputs: list[Path], params: dict, ctx: RunContext) -> ToolResult:
                 if not signers:
                     raise ToolError("Add a signer email.")
                 made = _create(con, ctx, inputs, params, signers)
-                return ToolResult(ok=True, message=f"Created {len(made)} signing request(s). Copy the link to send it.", data={"requests": made})
+                return ToolResult(ok=True, message=f"Created {len(made)} signing request(s). Copy the link to send it.", data={"requests": _with_urls(con, made)})
             if action == "bulk":
                 text = params.get("csv")
                 if not text:
@@ -262,13 +279,13 @@ def run(inputs: list[Path], params: dict, ctx: RunContext) -> ToolResult:
                     text = csvs[0].read_text(encoding="utf-8-sig")
                 batch = uuid.uuid4().hex[:8]
                 made = _create(con, ctx, inputs, params, _parse_csv(text), batch)
-                return ToolResult(ok=True, message=f"Created {len(made)} requests, one per signer (batch {batch}).", data={"requests": made, "batch_id": batch})
+                return ToolResult(ok=True, message=f"Created {len(made)} requests, one per signer (batch {batch}).", data={"requests": _with_urls(con, made), "batch_id": batch})
             if action == "list":
-                rows = [_row(r) for r in con.execute("select * from requests order by created_at desc")]
+                rows = _with_urls(con, [_row(r) for r in con.execute("select * from requests order by created_at desc")])
                 counts = {s: sum(r["status"] == s for r in rows) for s in ("sent", "viewed", "signed")}
                 return ToolResult(ok=True, message=f"{len(rows)} request(s).", data={"requests": rows, "counts": counts})
             if action == "status":
-                req = _row(_get(con, params.get("request_id")))
+                req = _with_urls(con, [_row(_get(con, params.get("request_id")))])[0]
                 audit = [dict(a) | {"detail": json.loads(a["detail"])} for a in
                          con.execute("select at, event, actor, detail from audit where request_id=? order by id", (req["id"],))]
                 return ToolResult(ok=True, message=f"Status: {req['status']}.", data={"request": req, "audit": audit})
@@ -308,6 +325,8 @@ def run(inputs: list[Path], params: dict, ctx: RunContext) -> ToolResult:
             if action == "branding_set":
                 b = _branding(con)
                 b.update({k: params[k] for k in ("company", "color", "logo") if k in params})
+                if "public_url" in params:
+                    b["public_url"] = _clean_url(params["public_url"])
                 con.execute("insert or replace into settings values ('branding', ?)", (json.dumps(b),))
                 return ToolResult(ok=True, message="Branding saved. It shows on every signing page.", data={"branding": b})
             raise ToolError(f"Unknown action '{action}'.")
@@ -335,6 +354,7 @@ TOOL = ToolSpec(
             "save_template": {"type": "string", "description": "Also save these boxes as a template with this name"},
             "title": {"type": "string"},
             "message": {"type": "string"},
+            "public_url": {"type": "string", "description": "branding_set: your own address for signing links, e.g. https://sign.example.com"},
             "request_id": {"type": "string"},
         },
     },
