@@ -35,7 +35,7 @@ Shared look: building-block classes in `frontend/src/styles.css`. Names, icons, 
 | Tool | Status |
 |---|---|
 | Combine, Compress, Split, Organize pages, Create a PDF, Protect, Remove a password, Export, Scan & OCR | DONE: each ran end to end through the new frame and was checked by screenshot. Office-to-PDF (in Create) needs LibreOffice installed; it shows the server's message without it. |
-| Redact, Prepare a web form, Edit & comment, Fill & Sign, Request e-signatures + Agreements page | IN PROGRESS at snapshot; see the commit after this one for the helper's final status. |
+| Redact, Prepare a web form, Edit & comment, Fill & Sign, Request e-signatures + Agreements page | DONE (14:44): each ran end to end through the new frame and was checked by screenshot. Redact: 14 found, leak test passed; audit of b_naive_redaction.pdf found 3 hidden texts. E-sign: link created, signed on /sign/<id>, shown Signed on /agreements. Web form: created, submitted on /f/<id>; flat PDF draw-a-field path works. |
 | Smart Autofill + profile page, autofill_memory, AI Assistant, Ask AI to do it, Generate, PDF Spaces, Compare | IN PROGRESS at snapshot; see the commit after this one for the helper's final status. |
 
 ## Known open issues
@@ -47,6 +47,8 @@ Shared look: building-block classes in `frontend/src/styles.css`. Names, icons, 
 2. Password-protected PDFs: the centre view now hands them to the PDF preview so it can say "password-protected,
    unlock it first"; untested because of issue 1.
 3. Whole-branch typecheck and build not yet run clean (helpers were mid-edit at the snapshot).
+4. Files uploaded straight to `POST /api/files` (not through the app) get tabs named "Document"; same root as issue 1.
+5. `SchemaForm`, `ResultPanel`, `PdfPreview` still use the old `.empty` class (unstyled message text).
 
 ## Autofill memory (new, does not touch Person C's code)
 `app/tools/autofill_memory.py` reads C's `storage/autofill_cache.json` and keeps its own
