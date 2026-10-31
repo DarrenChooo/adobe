@@ -1,0 +1,20 @@
+.autofill-rows { display: flex; flex-direction: column; gap: 8px; }
+.autofill-row { border: 1px solid var(--line); border-radius: var(--r-md); padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; background: var(--panel); }
+.autofill-row.review { background: var(--warn-soft); border-color: #f0c98a; }
+.autofill-row-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.autofill-row-label { font-size: 14px; color: var(--ink); overflow-wrap: anywhere; }
+.autofill-row-conf { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.autofill-row .inp { font-size: 12px; padding: 4px 8px; height: 28px; width: 100%; box-sizing: border-box; }
+.autofill-row select.inp { color: var(--ink-2); }
+.autofill-sent pre { white-space: pre-wrap; font-size: 11px; max-height: 240px; overflow: auto; margin: 6px 0 0; }
+.autofill-sent summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--blue); }
+
+.autofill-profile { max-width: 900px; }
+.autofill-own { display: grid; grid-template-columns: 1fr 1fr 28px; gap: 8px 16px; align-items: center; }
+.autofill-own-name { font-weight: 600; font-size: 14px; }
+.autofill-x { border: 0; background: none; font-size: 16px; color: var(--muted); cursor: pointer; padding: 0; }
+.autofill-x:hover { color: var(--fail); }
+.autofill-add { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end; border-top: 1px dashed var(--line-strong); padding-top: 12px; margin-top: 12px; }
+.autofill-forms li { justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.autofill-forms li:last-child { border-bottom: 0; }
+.autofill-save { display: flex; justify-content: flex-end; align-items: center; gap: 12px; }

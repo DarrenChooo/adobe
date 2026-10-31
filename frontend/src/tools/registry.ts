@@ -1,28 +1,50 @@
 // Collects every tool UI in this folder. Add frontend/src/tools/<id>.tsx with a
 // default export and it shows up: nobody edits a shared list.
+//
+// How a tool appears (Acrobat-style frame, see frontend/src/shell/):
+//   Pane  - the left pane while a document is open in the viewer. Draw on the page with <Stage>.
+//   Page  - a full-screen setup page at /tool/<id> (Combine, Compare, Create).
+//   routes - extra pages. frame "home" = inside the Home side menu (Agreements, Spaces, Profile);
+//            frame "none" (default) = bare page for outsiders (signing page, public web form).
 import type { ReactElement, ReactNode } from "react";
 import type { Api, FileInfo, RunResult, ToolInfo } from "../api";
 
-export interface ToolPanelProps {
-  /** Selected file ids, in the order the user ticked them. */
-  selectedFileIds: string[];
-  /** Every file in the session (uploads and outputs). */
-  files: FileInfo[];
+/** What every tool screen gets from the app frame. Route pages get the same via useApp(). */
+export interface ToolContext {
   api: Api;
-  /** Show a result in the result panel; its outputs are added to the file list. */
-  onResult: (res: RunResult) => void;
-  /** This tool's server-side spec from GET /api/tools (undefined if the server lacks it). */
+  /** This tool's server spec from GET /api/tools (undefined if the server lacks it). */
   tool?: ToolInfo;
+  /** Every file the user has opened or produced, newest first. */
+  files: FileInfo[];
+  /** Upload files from the user's computer. They join `files`; their infos are returned. */
+  upload: (list: File[]) => Promise<FileInfo[]>;
+  /** Show a finished run: a toast with its message, and its first PDF output opens as a new tab.
+   *  Non-PDF outputs are offered as downloads in the toast. */
+  onResult: (res: RunResult) => void;
+  /** Open a stored file as a document tab, optionally with a tool already chosen. */
+  openFile: (fileId: string, toolId?: string) => void;
+}
+
+/** Props for a tool that works on the open document. */
+export interface ToolPaneProps extends ToolContext {
+  /** The document open in the viewer. */
+  file: FileInfo;
+  /** Renders its children in the centre of the screen in place of the plain page view.
+   *  Use it for anything the user places or draws on the page (redaction boxes, signatures). */
+  Stage: (props: { children: ReactNode }) => ReactNode;
 }
 
 export interface ToolRoute {
   path: string;
   element: ReactElement;
+  /** "home" = shown inside the Home side menu frame. "none" (default) = bare page. */
+  frame?: "home" | "none";
 }
 
 export interface ToolUI {
   id: string;
-  Panel: (props: ToolPanelProps) => ReactNode;
+  Pane?: (props: ToolPaneProps) => ReactNode;
+  Page?: (props: ToolContext) => ReactNode;
   routes?: ToolRoute[];
 }
 

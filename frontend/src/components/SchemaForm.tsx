@@ -1,10 +1,11 @@
 import { useState } from "react";
-import type { ToolPanelProps } from "../tools/registry";
+import type { ToolPaneProps } from "../tools/registry";
 
 type Prop = { type?: string; enum?: unknown[]; default?: unknown; description?: string; title?: string };
 
 /** Fallback panel built from a tool's params_schema, for server tools with no .tsx yet. */
-export default function SchemaForm({ tool, selectedFileIds, api, onResult }: ToolPanelProps) {
+export default function SchemaForm({ tool, file, api, onResult }: ToolPaneProps) {
+  const selectedFileIds = [file.file_id];
   const props = ((tool?.params_schema as any)?.properties ?? {}) as Record<string, Prop>;
   const [values, setValues] = useState<Record<string, any>>(() =>
     Object.fromEntries(Object.entries(props).map(([k, p]) => [k, p.default ?? (p.type === "boolean" ? false : "")])),
@@ -58,7 +59,7 @@ export default function SchemaForm({ tool, selectedFileIds, api, onResult }: Too
           )}
         </label>
       ))}
-      <button className="primary" disabled={busy}>{busy ? "Running…" : `Run ${tool.name}`}</button>
+      <button className="btn primary block" disabled={busy}>{busy ? "Running…" : `Run ${tool.name}`}</button>
     </form>
   );
 }

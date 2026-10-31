@@ -62,7 +62,7 @@ export default function Coverage({ tools }: { tools: ToolInfo[] }) {
           <h2>
             {tier} {PRICE[tier] && <small className="muted">Adobe: {PRICE[tier]}</small>}
           </h2>
-          <table>
+          <div className="table-card"><table>
             <thead>
               <tr><th>#</th><th>Adobe feature</th><th>Fill Me tool</th><th>Owner</th><th>Pri</th><th>Status</th></tr>
             </thead>
@@ -74,11 +74,11 @@ export default function Coverage({ tools }: { tools: ToolInfo[] }) {
                   <td>{r.ids.map((id) => byId.get(id)?.name ?? id).join(", ")}</td>
                   <td>{r.owner}</td>
                   <td>{r.pri}</td>
-                  <td><span className={`badge ${r.status}`}>{BADGE[r.status]}</span></td>
+                  <td><span className={`status ${r.status}`}>{BADGE[r.status]}</span></td>
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </section>
       ))}
       <p className="muted small">Live from <code>GET /api/tools</code>. “Partial” = server tool exists but its UI or part of the feature isn't done.</p>

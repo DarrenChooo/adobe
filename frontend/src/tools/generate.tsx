@@ -1,22 +1,28 @@
+import { useState } from "react";
 import { useRun } from "../components/useRun";
-import type { ToolUI } from "./registry";
+import type { ToolPaneProps, ToolUI } from "./registry";
 
-const tool: ToolUI = {
-  id: "generate",
-  Panel: (props) => {
-    const { run, busy } = useRun(props);
-    const id = props.selectedFileIds[props.selectedFileIds.length - 1];
-    return (
-      <div className="stack">
-        <p className="muted small">The AI writes the words from this PDF's text, and the app builds the file. Check the facts before sharing it.</p>
-        <div className="row">
-          <button className="primary" disabled={busy || !id} onClick={() => run("generate", [id], { kind: "deck" })}>
-            {busy ? "Working…" : "Make a slide deck"}
-          </button>
-          <button disabled={busy || !id} onClick={() => run("generate", [id], { kind: "flyer" })}>Make a flyer</button>
-        </div>
-      </div>
-    );
-  },
-};
+function Pane(props: ToolPaneProps) {
+  const { run, busy } = useRun(props);
+  const [kind, setKind] = useState<"deck" | "flyer" | "">("");
+  const id = props.file.file_id;
+  const make = async (k: "deck" | "flyer") => {
+    setKind(k);
+    await run("generate", [id], { kind: k });
+    setKind("");
+  };
+  return (
+    <div className="step">
+      <p className="hint">The AI writes the words from this PDF's text, and Fill Me builds the file. Check the facts before you share it.</p>
+      <button className="btn primary block" disabled={busy} onClick={() => make("deck")}>
+        {busy && kind === "deck" ? "Making the deck…" : "Make a slide deck"}
+      </button>
+      <button className="btn block" disabled={busy} onClick={() => make("flyer")}>
+        {busy && kind === "flyer" ? "Making the flyer…" : "Make a flyer"}
+      </button>
+    </div>
+  );
+}
+
+const tool: ToolUI = { id: "generate", Pane };
 export default tool;

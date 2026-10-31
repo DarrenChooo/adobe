@@ -1,10 +1,11 @@
 import { useState } from "react";
 import type { RunResult } from "../api";
-import type { ToolPanelProps } from "../tools/registry";
+import type { ToolContext } from "../tools/registry";
 
-/** Shared busy-state + error handling for tool panels:
- *  const { run, busy } = useRun(props); run("merge", ids, params) */
-export function useRun({ api, onResult }: Pick<ToolPanelProps, "api" | "onResult">) {
+/** Shared busy-state + error handling for tool screens:
+ *  const { run, busy } = useRun(props); run("merge", ids, params)
+ *  Every run is reported to the frame (toast + output opens as a tab). */
+export function useRun({ api, onResult }: Pick<ToolContext, "api" | "onResult">) {
   const [busy, setBusy] = useState(false);
   const run = async (toolId: string, fileIds: string[], params: Record<string, unknown> = {}): Promise<RunResult> => {
     setBusy(true);

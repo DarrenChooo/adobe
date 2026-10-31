@@ -36,6 +36,7 @@ export default function PdfPreview({ fileId, width = 520, page, overlay, onPageC
         <div
           key={n}
           className="page-wrap"
+          data-page={n}
           onClick={
             onPageClick
               ? (e) => {

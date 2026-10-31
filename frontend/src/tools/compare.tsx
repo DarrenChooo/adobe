@@ -1,52 +1,141 @@
-import { useState } from "react";
-import type { ToolPanelProps, ToolUI } from "./registry";
-import "./pro/pro.css";
+import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import PdfPreview from "../components/PdfPreview";
+import { ToolTile } from "../shell/catalog";
+import type { ToolContext, ToolUI } from "./registry";
+import "./compare.css";
 
 type Change = { type: string; page_a: number | null; page_b: number | null; before: string[]; after: string[] };
 
-function ComparePanel({ selectedFileIds, api, onResult }: ToolPanelProps) {
-  const [swapped, setSwapped] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<{ kind: string; text: string } | null>(null);
-  const [changes, setChanges] = useState<Change[]>([]);
+const isPdf = (name: string) => /\.pdf$/i.test(name);
 
-  if (selectedFileIds.length !== 2) return <p className="pro-help">Select exactly two PDFs: the old version and the new version.</p>;
-  const [oldId, newId] = swapped ? [selectedFileIds[1], selectedFileIds[0]] : selectedFileIds;
+function Slot({ title, fileId, ctx, onPick }: { title: string; fileId: string; ctx: ToolContext; onPick: (id: string) => void }) {
+  const input = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState("");
+  const chosen = ctx.files.find((f) => f.file_id === fileId);
+  const pdfs = ctx.files.filter((f) => isPdf(f.filename));
 
-  const run = async () => {
-    setBusy(true); setMsg(null);
-    const res = await api.runTool("compare", [oldId, newId], {});
-    setBusy(false);
-    if (!res.ok) return setMsg({ kind: "err", text: res.message });
-    setChanges(res.data.text_changes as Change[]);
-    setMsg({ kind: "good", text: res.message + " The report shows old on the left, new on the right, changes boxed in red." });
-    onResult(res);
+  const uploadOne = async (list: FileList | null) => {
+    if (!list?.length) return;
+    setError("");
+    try {
+      const [info] = await ctx.upload([list[0]]);
+      if (info) onPick(info.file_id);
+    } catch (e) {
+      setError((e as Error).message);
+    }
   };
 
   return (
-    <div className="pro-panel">
-      <div className="pro-row">
-        <span className="pro-chip">Old: file {swapped ? 2 : 1}</span>
-        <span className="pro-chip">New: file {swapped ? 1 : 2}</span>
-        <button className="pro-btn ghost" onClick={() => setSwapped((s) => !s)}>Swap</button>
-        <button className="pro-btn" onClick={run} disabled={busy}>{busy ? "Comparing..." : "Compare"}</button>
-      </div>
-      {msg ? <div className={`pro-msg ${msg.kind}`}>{msg.text}</div> : null}
-      {changes.map((c, i) => (
-        <div key={i}>
-          <div className="pro-row">
-            <span className="pro-chip">{c.type}</span>
-            <span className="pro-help">page {c.page_a ?? "-"} (old) / {c.page_b ?? "-"} (new)</span>
+    <div className="compare-slot">
+      <h3>{title}</h3>
+      <input ref={input} type="file" accept="application/pdf,.pdf" hidden onChange={(e) => { uploadOne(e.target.files); e.target.value = ""; }} />
+      {chosen ? (
+        <>
+          <div className="compare-thumb"><PdfPreview fileId={chosen.file_id} page={1} width={120} /></div>
+          <div className="compare-name">{chosen.filename}</div>
+          <button className="btn block" onClick={() => onPick("")}>Change file</button>
+        </>
+      ) : (
+        <>
+          <div className="compare-thumb">
+            <button className="btn" onClick={() => input.current?.click()}>Upload a PDF</button>
           </div>
-          <div className="pro-diff">
-            <div>{c.before.map((l, j) => <div key={j} className="before">{l}</div>)}</div>
-            <div>{c.after.map((l, j) => <div key={j} className="after">{l}</div>)}</div>
-          </div>
-        </div>
-      ))}
+          {pdfs.length > 0 && (
+            <label className="field">
+              Or choose one you've opened
+              <select value="" onChange={(e) => onPick(e.target.value)}>
+                <option value="">Choose a file…</option>
+                {pdfs.map((f) => <option key={f.file_id} value={f.file_id}>{f.filename}</option>)}
+              </select>
+            </label>
+          )}
+        </>
+      )}
+      {error && <div className="msg err">{error}</div>}
     </div>
   );
 }
 
-const tool: ToolUI = { id: "compare", Panel: ComparePanel, routes: [] };
+function ComparePage(ctx: ToolContext) {
+  const navigate = useNavigate();
+  const [oldId, setOldId] = useState("");
+  const [newId, setNewId] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [changes, setChanges] = useState<Change[] | null>(null);
+
+  const pick = (which: "old" | "new") => (id: string) => {
+    (which === "old" ? setOldId : setNewId)(id);
+    setMsg(null);
+    setChanges(null);
+  };
+
+  const run = async () => {
+    setBusy(true);
+    setMsg(null);
+    setChanges(null);
+    try {
+      const res = await ctx.api.runTool("compare", [oldId, newId], {});
+      if (!res.ok) {
+        setMsg({ ok: false, text: res.message });
+        return;
+      }
+      setChanges((res.data.text_changes as Change[]) ?? []);
+      setMsg({ ok: true, text: `${res.message} The report shows old on the left and new on the right, with changes boxed in red.` });
+      ctx.onResult(res);
+    } catch (e) {
+      setMsg({ ok: false, text: (e as Error).message });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const ready = oldId && newId && oldId !== newId;
+
+  return (
+    <div className="setup">
+      <div className="setup-head"><ToolTile id="compare" /><h1>Compare files</h1></div>
+      <p className="lead">Pick the older version on the left and the newer one on the right.</p>
+      <div className="compare-slots">
+        <Slot title="Old file" fileId={oldId} ctx={ctx} onPick={pick("old")} />
+        <button className="compare-swap" title="Swap old and new" aria-label="Swap old and new" disabled={!oldId && !newId}
+          onClick={() => { setOldId(newId); setNewId(oldId); setChanges(null); setMsg(null); }}>⇄</button>
+        <Slot title="New file" fileId={newId} ctx={ctx} onPick={pick("new")} />
+      </div>
+
+      <div className="setup-bar compare-bar">
+        <span className="hint">
+          {oldId && newId && oldId === newId ? "Pick two different files." : ready ? "Changes will be boxed in red in a side-by-side report." : "Pick both files to compare."}
+        </span>
+        <div className="row">
+          <button className="btn" onClick={() => navigate(-1)}>Cancel</button>
+          <button className="btn primary" disabled={!ready || busy} onClick={run}>{busy ? "Comparing…" : "Compare"}</button>
+        </div>
+      </div>
+
+      {msg && <div className={`msg ${msg.ok ? "ok" : "err"} compare-bar`} style={{ marginTop: 16 }}>{msg.text}</div>}
+
+      {changes && changes.length > 0 && (
+        <div className="compare-changes">
+          <h3 style={{ margin: 0, fontSize: 15 }}>Text changes</h3>
+          {changes.map((c, i) => (
+            <div key={i} className="compare-change">
+              <div className="compare-change-head">
+                <span className="chip">{c.type}</span>
+                <span className="hint">Page {c.page_a ?? "-"} in the old file, page {c.page_b ?? "-"} in the new file</span>
+              </div>
+              <div className="compare-diff">
+                <div>{c.before.length ? c.before.map((l, j) => <span key={j} className="compare-before">{l}</span>) : <span className="compare-none">Nothing before</span>}</div>
+                <div>{c.after.length ? c.after.map((l, j) => <span key={j} className="compare-after">{l}</span>) : <span className="compare-none">Removed</span>}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const tool: ToolUI = { id: "compare", Page: ComparePage };
 export default tool;

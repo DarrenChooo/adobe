@@ -1,0 +1,20 @@
+.assistant_qa { display: flex; flex-direction: column; gap: 10px; height: 100%; min-height: 0; }
+.assistant_qa-log { flex: 1; min-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+.assistant_qa-msg { max-width: 88%; padding: 10px 12px; border-radius: 12px; font-size: 14px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+.assistant_qa-msg.ai { align-self: flex-start; background: var(--app); color: var(--ink); }
+.assistant_qa-msg.me { align-self: flex-end; background: var(--blue); color: #fff; font-weight: 600; }
+.assistant_qa-msg.err { align-self: flex-start; background: var(--fail-soft); color: var(--fail); }
+.assistant_qa-msg .chip { margin-left: 4px; background: var(--panel); border: 1px solid var(--line-strong); color: var(--ink); vertical-align: 1px; }
+.assistant_qa-checks { margin-top: 6px; display: flex; flex-direction: column; gap: 2px; font-size: 12px; white-space: normal; }
+.assistant_qa-checks .ok { color: var(--ok); }
+.assistant_qa-checks .bad { color: var(--warn); }
+.assistant_qa-note { margin-top: 6px; font-size: 12px; color: var(--muted); white-space: normal; }
+.assistant_qa-sugg { display: flex; flex-wrap: wrap; gap: 6px; }
+.assistant_qa-sugg button { border: 1px solid var(--line-strong); background: var(--panel); border-radius: 999px; padding: 4px 10px; font-size: 12px; color: var(--ink-2); cursor: pointer; }
+.assistant_qa-sugg button:hover:not(:disabled) { border-color: var(--blue); color: var(--blue); }
+.assistant_qa-ask { display: flex; align-items: center; border: 1px solid var(--line-strong); border-radius: var(--r-md); padding: 0 6px 0 12px; background: var(--panel); }
+.assistant_qa-ask:focus-within { border-color: var(--blue); }
+.assistant_qa-ask input { flex: 1; border: 0; outline: 0; padding: 11px 0; font-size: 14px; background: none; min-width: 0; }
+.assistant_qa-ask button { border: 0; background: none; color: var(--muted); font-size: 16px; padding: 6px; cursor: pointer; }
+.assistant_qa-ask button:not(:disabled) { color: var(--blue); }
+.assistant_qa-privacy { font-size: 11px; color: var(--muted); margin: 0; }

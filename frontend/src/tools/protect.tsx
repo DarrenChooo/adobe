@@ -11,30 +11,57 @@ const PERMS = [
 
 const tool: ToolUI = {
   id: "protect",
-  Panel: (props) => {
+  Pane: (props) => {
     const { run, busy } = useRun(props);
     const [pw, setPw] = useState("");
     const [pw2, setPw2] = useState("");
     const [owner, setOwner] = useState("");
+    const [err, setErr] = useState("");
     const [perms, setPerms] = useState<Record<string, boolean>>(Object.fromEntries(PERMS.map(([k, , d]) => [k, d])));
-    const id = props.selectedFileIds[props.selectedFileIds.length - 1];
     const mismatch = pw2 !== "" && pw !== pw2;
+    const why = !pw ? "Enter a password" : pw !== pw2 ? (pw2 ? "Passwords don't match" : "Confirm the password") : "";
     return (
-      <form className="stack" onSubmit={(e) => { e.preventDefault(); run("protect", [id], { password: pw, owner_password: owner || undefined, ...perms }); }}>
-        <label>Password to open<input type="password" value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="new-password" /></label>
-        <label>Confirm<input type="password" value={pw2} onChange={(e) => setPw2(e.target.value)} autoComplete="new-password" /></label>
-        {mismatch && <small style={{ color: "var(--fail)" }}>Passwords don't match.</small>}
-        <fieldset className="stack card">
-          <legend>Allow readers to…</legend>
+      <form
+        className="stack"
+        style={{ gap: 14 }}
+        onSubmit={async (e) => {
+          e.preventDefault();
+          if (why) return;
+          setErr("");
+          const res = await run("protect", [props.file.file_id], { password: pw, owner_password: owner || undefined, ...perms });
+          if (!res.ok) setErr(res.message);
+        }}
+      >
+        <div className="step">
+          <h4>Password to open</h4>
+          <label className="field">Password
+            <input type="password" value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="new-password" />
+          </label>
+          <label className="field">Type it again
+            <input type="password" value={pw2} onChange={(e) => setPw2(e.target.value)} autoComplete="new-password" />
+          </label>
+          {mismatch && <div className="msg err">Passwords don't match.</div>}
+        </div>
+        <div className="step">
+          <h4>Let readers</h4>
           {PERMS.map(([k, label]) => (
-            <label key={k} className="inline"><input type="checkbox" checked={perms[k]} onChange={(e) => setPerms((s) => ({ ...s, [k]: e.target.checked }))} /> {label}</label>
+            <label key={k} className="check">
+              <input type="checkbox" checked={perms[k]} onChange={(e) => setPerms((s) => ({ ...s, [k]: e.target.checked }))} /> {label}
+            </label>
           ))}
-          <small className="muted">Permissions are honoured by well-behaved viewers only. The password itself is real AES-256 encryption.</small>
-        </fieldset>
-        <label>Owner password <small className="muted">(optional, for changing permissions)</small>
-          <input type="password" value={owner} onChange={(e) => setOwner(e.target.value)} autoComplete="new-password" />
-        </label>
-        <button className="primary" disabled={busy || !id || !pw || pw !== pw2}>{busy ? "Encrypting…" : "Protect with AES-256"}</button>
+          <p className="hint">Most viewers respect these. The password itself is AES-256 encryption.</p>
+        </div>
+        <div className="step">
+          <label className="field">Owner password <span className="hint">Optional. Needed later to change what readers can do.</span>
+            <input type="password" value={owner} onChange={(e) => setOwner(e.target.value)} autoComplete="new-password" />
+          </label>
+        </div>
+        <div className="step">
+          {err && <div className="msg err">{err}</div>}
+          <button className="btn primary block" disabled={busy || !!why}>
+            {busy ? "Encrypting…" : why || "Protect with a password"}
+          </button>
+        </div>
       </form>
     );
   },
