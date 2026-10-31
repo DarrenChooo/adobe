@@ -109,18 +109,33 @@ def find_anchors(path: Path, n_pages: int) -> dict:
     and "Date" label in the document, sitting on that label's line. "Date of birth"
     and similar don't count. Boxes use the same top-left fractions as stamps."""
     found: dict = {"signature": None, "date": None}
+    caption_rows: set = set()  # (page, row top) of labels printed UNDER their line, like the W-4's
     try:
         for p in range(n_pages):
             words = text_with_boxes(path, p)
             pw, ph = page_size(path, p)
+            same_row = lambda a, b: abs(a["top"] - b["top"]) < 3
             for i, w in enumerate(words):
-                nxt = words[i + 1]["text"].lower() if i + 1 < len(words) else ""
+                nxt = words[i + 1] if i + 1 < len(words) else None
                 for kind, rx in _LABEL.items():
-                    if not rx.match(w["text"]) or nxt in ("of", "signed", "issued", "received"):
+                    if not rx.match(w["text"]) or (nxt and nxt["text"].lower() in ("of", "signed", "issued", "received")):
                         continue
                     bw, bh = _ANCHOR_SIZE[kind]
-                    x = min((w["x1"] + 8) / pw, 1 - bw)
-                    y = max(0.0, (w["bottom"] + 2) / ph - bh)
+                    # A caption ("Employee's signature (This form...)") has more words right after it on
+                    # its row, or shares a row with one: then the line to sign on is just above it.
+                    row = (p, round(w["top"]))
+                    caption = (nxt is not None and same_row(nxt, w) and nxt["x0"] - w["x1"] < 20) or \
+                              any(r[0] == p and abs(r[1] - w["top"]) < 3 for r in caption_rows)
+                    if caption:
+                        caption_rows.add(row)
+                        start = i  # start of the caption phrase, e.g. "Employee's"
+                        while start > 0 and same_row(words[start - 1], w) and w["x0"] - words[start - 1]["x1"] < 60:
+                            start -= 1
+                        x = min(words[start]["x0"] / pw, 1 - bw)
+                        y = max(0.0, (w["top"] - 3) / ph - bh)
+                    else:
+                        x = min((w["x1"] + 8) / pw, 1 - bw)
+                        y = max(0.0, (w["bottom"] + 2) / ph - bh)
                     found[kind] = {"page": p + 1, "x": x, "y": y, "w": bw, "h": bh}
     except Exception:
         pass  # anchors are a convenience; never fail the field list over them
