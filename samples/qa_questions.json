@@ -1,0 +1,18 @@
+{
+  "_about": "Hand-written Q&A test set, using the public IRS forms in samples/forms. answer_contains and page were set by reading the documents.",
+  "answerable": [
+    {"file": "irs_w4.pdf", "question": "Who can claim exemption from withholding for 2026?", "page": 2, "answer_contains": "no federal income tax liability"},
+    {"file": "irs_w4.pdf", "question": "What should a nonresident alien read before completing this form?", "page": 2, "answer_contains": "1392"},
+    {"file": "irs_w4.pdf", "question": "Which publication covers tax withholding and estimated tax?", "page": 2, "answer_contains": "505"},
+    {"file": "irs_w9.pdf", "question": "Which form should a foreign person use instead of Form W-9?", "page": 2, "answer_contains": "W-8"},
+    {"file": "irs_w9.pdf", "question": "What does FATCA stand for?", "page": 3, "answer_contains": "Foreign Account Tax Compliance Act"},
+    {"file": "irs_w9.pdf", "question": "On which line do you enter a business name or DBA name?", "page": 3, "answer_contains": "2"}
+  ],
+  "unanswerable": [
+    {"file": "irs_w4.pdf", "question": "What is the GST rate in Singapore?"},
+    {"file": "irs_w4.pdf", "question": "Who is the current Commissioner of the IRS?"},
+    {"file": "irs_w9.pdf", "question": "How many days of annual leave must an employer give?"},
+    {"file": "irs_w9.pdf", "question": "What is the deadline for filing Singapore income tax?"},
+    {"file": "irs_w9.pdf", "question": "What is the IRS's customer service phone number in Tokyo?"}
+  ]
+}
