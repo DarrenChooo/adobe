@@ -13,11 +13,13 @@ const isPdf = (name: string) => /\.pdf$/i.test(name);
 function Slot({ title, fileId, ctx, onPick }: { title: string; fileId: string; ctx: ToolContext; onPick: (id: string) => void }) {
   const input = useRef<HTMLInputElement>(null);
   const [error, setError] = useState("");
+  const [over, setOver] = useState(false);
   const chosen = ctx.files.find((f) => f.file_id === fileId);
   const pdfs = ctx.files.filter((f) => isPdf(f.filename));
 
   const uploadOne = async (list: FileList | null) => {
     if (!list?.length) return;
+    if (!isPdf(list[0].name)) return setError("That isn't a PDF. Drop or upload a .pdf file.");
     setError("");
     try {
       const [info] = await ctx.upload([list[0]]);
@@ -28,7 +30,13 @@ function Slot({ title, fileId, ctx, onPick }: { title: string; fileId: string; c
   };
 
   return (
-    <div className="compare-slot">
+    <div
+      className="compare-slot"
+      style={over ? { outline: "3px dashed var(--blue)", outlineOffset: -6 } : undefined}
+      onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; setOver(true); }}
+      onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setOver(false); }}
+      onDrop={(e) => { e.preventDefault(); setOver(false); uploadOne(e.dataTransfer.files); }}
+    >
       <h3>{title}</h3>
       <input ref={input} type="file" accept="application/pdf,.pdf" hidden onChange={(e) => { uploadOne(e.target.files); e.target.value = ""; }} />
       {chosen ? (
@@ -41,6 +49,7 @@ function Slot({ title, fileId, ctx, onPick }: { title: string; fileId: string; c
         <>
           <div className="compare-thumb">
             <button className="btn" onClick={() => input.current?.click()}>Upload a PDF</button>
+            <span className="hint" style={{ display: "block", marginTop: 6 }}>or drop it here</span>
           </div>
           {pdfs.length > 0 && (
             <label className="field">
