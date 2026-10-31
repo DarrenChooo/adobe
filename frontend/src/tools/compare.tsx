@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PdfPreview from "../components/PdfPreview";
 import { ToolTile } from "../shell/catalog";
+import type { RunResult } from "../api";
 import type { ToolContext, ToolUI } from "./registry";
 import "./compare.css";
 
@@ -64,26 +65,32 @@ function ComparePage(ctx: ToolContext) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [changes, setChanges] = useState<Change[] | null>(null);
+  const [report, setReport] = useState<RunResult | null>(null);
 
   const pick = (which: "old" | "new") => (id: string) => {
     (which === "old" ? setOldId : setNewId)(id);
     setMsg(null);
     setChanges(null);
+    setReport(null);
   };
 
   const run = async () => {
     setBusy(true);
     setMsg(null);
     setChanges(null);
+    setReport(null);
     try {
       const res = await ctx.api.runTool("compare", [oldId, newId], {});
       if (!res.ok) {
         setMsg({ ok: false, text: res.message });
         return;
       }
-      setChanges((res.data.text_changes as Change[]) ?? []);
-      setMsg({ ok: true, text: `${res.message} The report shows old on the left and new on the right, with changes boxed in red.` });
-      ctx.onResult(res);
+      const list = (res.data.text_changes as Change[]) ?? [];
+      setChanges(list);
+      setReport(res);
+      // Opening the report leaves this page, so show the changes first when there are any.
+      if (!list.length) ctx.onResult(res);
+      else setMsg({ ok: true, text: `${res.message} The report shows old on the left and new on the right, with changes boxed in red.` });
     } catch (e) {
       setMsg({ ok: false, text: (e as Error).message });
     } finally {
@@ -100,7 +107,7 @@ function ComparePage(ctx: ToolContext) {
       <div className="compare-slots">
         <Slot title="Old file" fileId={oldId} ctx={ctx} onPick={pick("old")} />
         <button className="compare-swap" title="Swap old and new" aria-label="Swap old and new" disabled={!oldId && !newId}
-          onClick={() => { setOldId(newId); setNewId(oldId); setChanges(null); setMsg(null); }}>⇄</button>
+          onClick={() => { setOldId(newId); setNewId(oldId); setChanges(null); setMsg(null); setReport(null); }}>⇄</button>
         <Slot title="New file" fileId={newId} ctx={ctx} onPick={pick("new")} />
       </div>
 
@@ -114,7 +121,12 @@ function ComparePage(ctx: ToolContext) {
         </div>
       </div>
 
-      {msg && <div className={`msg ${msg.ok ? "ok" : "err"} compare-bar`} style={{ marginTop: 16 }}>{msg.text}</div>}
+      {msg && (
+        <div className={`msg ${msg.ok ? "ok" : "err"} compare-bar compare-result`}>
+          <span>{msg.text}</span>
+          {report && <button className="btn primary small" onClick={() => ctx.onResult(report)}>Open the report</button>}
+        </div>
+      )}
 
       {changes && changes.length > 0 && (
         <div className="compare-changes">

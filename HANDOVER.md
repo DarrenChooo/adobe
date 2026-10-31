@@ -45,6 +45,8 @@ Shared look: building-block classes in `frontend/src/styles.css`. Names, icons, 
 4. **Fixed: `PdfPreview` used the old `.empty` class.** `SchemaForm` and `ResultPanel` don't use it.
 5. **Not checked on the Windows laptop: anything needing Tesseract.** OCR and Redact fail there because it isn't installed, along with 5 tests. Bryan checked them on his Mac before the wrap-up, but not since `main` was merged in.
 6. **Speed:** `gemma4:26b` averages about 35 seconds per form and 14 seconds per Q&A call. Rehearse with that in mind.
+7. **AI features need `LLM_MODEL` in `.env`.** Without it, every AI call fails with "LLM_MODEL is not set". Set `LLM_MODEL=gemma4:26b` and a working `SOCLAAS_API_KEY` on the demo laptop.
+8. **Fixed: files opened by direct link missing from Compare and Spaces.** Same fix as issue 2.
 
 ## Autofill memory (new, does not touch Person C's code)
 `app/tools/autofill_memory.py` reads C's `storage/autofill_cache.json` and keeps its own

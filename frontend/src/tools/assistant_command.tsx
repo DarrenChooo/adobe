@@ -83,7 +83,7 @@ function Pane({ file, files, api, onResult }: ToolPaneProps) {
             </div>
           </details>
         )}
-        <button className="btn primary block" disabled={!!busy || !sentence.trim()}>{busy === "plan" ? "Planning…" : "Make a plan"}</button>
+        <button className={`btn block${plan ? "" : " primary"}`} disabled={!!busy || !sentence.trim()}>{busy === "plan" ? "Planning…" : "Make a plan"}</button>
         <p className="hint">Your sentence goes to the AI model, so don't type a real password here. Your files don't: the AI only picks the tools.</p>
         {error && <div className="msg err">{error}</div>}
       </form>

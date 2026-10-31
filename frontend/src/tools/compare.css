@@ -1,4 +1,5 @@
-.compare-slots { display: grid; grid-template-columns: 1fr 64px 1fr; align-items: center; max-width: 820px; }
+.compare-slots { display: grid; grid-template-columns: 1fr 64px 1fr; align-items: stretch; max-width: 820px; }
+.compare-slots > .compare-swap { align-self: center; }
 .compare-slot { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 .compare-slot h3 { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-2); }
 .compare-thumb { background: var(--canvas); border-radius: var(--r-md); height: 200px; display: grid; place-items: center; overflow: hidden; }
@@ -16,3 +17,4 @@
 .compare-before { background: var(--fail-soft); color: #8a1c22; padding: 3px 6px; border-radius: var(--r-sm); text-decoration: line-through; }
 .compare-after { background: var(--ok-soft); color: #0b5c41; padding: 3px 6px; border-radius: var(--r-sm); }
 .compare-none { color: var(--muted); font-style: italic; font-size: 13px; }
+.compare-result { margin-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
