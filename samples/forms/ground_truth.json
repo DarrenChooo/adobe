@@ -1,0 +1,70 @@
+{
+  "_about": "Hand-written answers for samples/profile.sample.json, set by reading each form. Each field lists the keys accepted, and null means leaving it empty is right. A trailing * matches by prefix. Any field not listed should stay empty. These forms are blank US federal forms from irs.gov and uscis.gov.",
+  "uscis_g1145.pdf": {
+    "LastName": ["surname"],
+    "FirstName": ["given_name"],
+    "Email": ["email"],
+    "MobilePhoneNumber": ["phone"]
+  },
+  "uscis_ar11.pdf": {
+    "S1_GivenName": ["given_name"],
+    "S1_FamilyName": ["surname"],
+    "S1_DateOfBirth": ["date_of_birth_mmddyyyy"],
+    "S2B_StreetNumberName": ["address_line1", "full_address"],
+    "S2B_CityOrTown": ["city"],
+    "S2B_ZipCode": ["postal_code"],
+    "S2C_StreetNumberName": ["address_line1", "full_address", null],
+    "S2C_CityOrTown": ["city", null],
+    "S2C_ZipCode": ["postal_code", null]
+  },
+  "uscis_i9.pdf": {
+    "Last Name (Family Name)": ["surname"],
+    "First Name Given Name": ["given_name"],
+    "Address Street Number and Name": ["address_line1", "full_address"],
+    "City or Town": ["city"],
+    "ZIP Code": ["postal_code"],
+    "Date of Birth mmddyyyy": ["date_of_birth_mmddyyyy"],
+    "Employees E-mail Address": ["email"],
+    "Telephone Number": ["phone"],
+    "Foreign Passport Number and Country*": ["passport_number", null],
+    "Last Name Family Name from Section*": ["surname", null],
+    "First Name Given Name from Section*": ["given_name", null]
+  },
+  "irs_w4.pdf": {
+    "f1_01": ["given_name"],
+    "f1_02": ["surname"],
+    "f1_03": ["address_line1", "full_address"],
+    "f1_04": ["city_state_postal_code"]
+  },
+  "irs_w9.pdf": {
+    "f1_01": ["full_name"],
+    "f1_07": ["address_line1", "full_address"],
+    "f1_08": ["city_state_postal_code"]
+  },
+  "irs_8822.pdf": {
+    "f1_3": ["full_name"],
+    "f1_17": ["address_line1", "full_address"],
+    "f1_18": ["country"],
+    "f1_20": ["postal_code"],
+    "f1_21": ["phone", null]
+  },
+  "irs_4506t.pdf": {
+    "f1_1": ["full_name"],
+    "f1_5": ["full_address"],
+    "f1_13": ["phone"]
+  },
+  "irs_2848.pdf": {
+    "TaxpayerName": ["full_name"],
+    "TaxpayerAddress": ["full_address", "address_line1"],
+    "TaxpayerTelephone": ["phone"],
+    "PrintName": ["full_name", null],
+    "PrintNameTaxpayer": ["full_name", null]
+  },
+  "irs_ss4.pdf": {
+    "f1_5": ["address_line1", "full_address", null],
+    "f1_6": ["city_state_postal_code", null],
+    "f1_10": ["full_name", null],
+    "f1_44": ["full_name", null],
+    "f1_45": ["phone", null]
+  }
+}

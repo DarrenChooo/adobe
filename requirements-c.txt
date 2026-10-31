@@ -1,0 +1,9 @@
+# Person C dependencies. Fold into requirements.txt once Person A's scaffold lands.
+openai
+python-dotenv
+jsonschema
+pypdf
+pdfplumber
+reportlab
+pytest
+pypdfium2

@@ -1,0 +1,20 @@
+{
+  "full_name": "Tan Wei Ming",
+  "surname": "Tan",
+  "given_name": "Wei Ming",
+  "nric": "S1234567D",
+  "passport_number": "E1234567X",
+  "date_of_birth": "2003-04-09",
+  "nationality": "Singaporean",
+  "sex": "Male",
+  "address_line1": "123 Example Avenue 4 #05-67",
+  "city": "Singapore",
+  "postal_code": "123456",
+  "country": "Singapore",
+  "phone": "+65 9123 4567",
+  "email": "tan.weiming@example.com",
+  "occupation": "Student",
+  "emergency_contact_name": "Lim Mei Ling",
+  "emergency_contact_phone": "+65 8123 4567",
+  "emergency_contact_relationship": "Mother"
+}
