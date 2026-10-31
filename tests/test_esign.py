@@ -2,7 +2,7 @@ import io
 
 from pypdf import PdfReader
 
-from tests.test_fill_sign import sig_png
+from test_fill_sign import sig_png
 
 BOXES = [{"kind": "signature", "page": 3, "x": 0.1, "y": 0.8, "w": 0.3, "h": 0.06},
          {"kind": "date", "page": 3, "x": 0.6, "y": 0.8, "w": 0.2, "h": 0.03}]
