@@ -8,16 +8,17 @@ import logging
 import os
 import re
 import time
-from pathlib import Path
 
 import jsonschema
 from dotenv import load_dotenv
-from openai import OpenAI
+from openai import APIError, OpenAI
+
+from app.core.storage import STORAGE_DIR
 
 load_dotenv()
 
 DEFAULT_BASE_URL = "https://soclaas-api.comp.nus.edu.sg/v1"
-LOG_PATH = Path("storage") / "llm_calls.jsonl"
+LOG_PATH = STORAGE_DIR / "llm_calls.jsonl"
 
 log = logging.getLogger("fillme.llm")
 
@@ -25,8 +26,8 @@ log = logging.getLogger("fillme.llm")
 CALL_LOG: list[dict] = []
 
 
-class LLMError(RuntimeError):
-    pass
+class LLMError(ValueError):
+    """A ValueError, so the run wrapper shows its message to the user as it is."""
 
 
 def _client() -> OpenAI:
@@ -62,9 +63,13 @@ def _chat(messages: list[dict], model: str) -> str:
     started = time.monotonic()
     try:
         resp = _client().chat.completions.create(model=model, messages=messages, temperature=0)
-    except Exception:
+    except APIError as exc:
         _record(model, None, time.monotonic() - started, ok=False)
-        raise
+        # The provider's own message can echo request details, so it stays out of the UI.
+        status = getattr(exc, "status_code", None)
+        detail = f", HTTP {status}" if status else ""
+        raise LLMError(f"The AI service failed ({type(exc).__name__}{detail}). "
+                       "Check SOCLAAS_API_KEY and LLM_MODEL in .env.") from None
     _record(model, resp.usage, time.monotonic() - started, ok=True)
     return resp.choices[0].message.content or ""
 

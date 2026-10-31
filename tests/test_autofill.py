@@ -151,3 +151,15 @@ def test_ground_truth_names_real_fields():
         for pattern in rules:
             hit = any(s.startswith(pattern[:-1]) for s in shorts) if pattern.endswith("*") else pattern in shorts
             assert hit, f"{filename}: {pattern}"
+
+
+def test_review_label_skips_shared_boilerplate():
+    fields = {f["name"].split(".")[-1]: autofill.short_label(f) for f in autofill.read_fields("samples/forms/uscis_g1145.pdf")}
+    assert fields["LastName[0]"] == "Enter Applicant or Petitioner Full Last Name."
+    assert fields["Email[0]"] == "Enter E-mail Address."
+    assert len(set(fields.values())) == len(fields)
+
+
+def test_review_label_keeps_short_text_and_falls_back_to_the_name():
+    assert autofill.short_label({"tooltip": "Surname", "label": "", "name": "a.b"}) == "Surname"
+    assert autofill.short_label({"tooltip": "", "label": "", "name": "form.f1_01[0]"}) == "f1_01[0]"

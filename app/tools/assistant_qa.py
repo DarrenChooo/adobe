@@ -1,13 +1,11 @@
-"""Summary and Q&A with page citations that are checked against the document.
-
-Plain functions for now. Wrap `run` in a ToolSpec once app/core/tooling.py lands.
-"""
+"""Summary and Q&A with page citations that are checked against the document."""
 import re
 from pathlib import Path
 
 import pdfplumber
 
 from app.core import llm
+from app.core.tooling import REGISTRY, RunContext, ToolError, ToolResult, ToolSpec, normalize_outputs, run_tool
 
 NOT_IN_DOCUMENT = "The document doesn't say."
 MAX_CHARS = 60_000  # a limit on what's sent per call, roughly 15k tokens
@@ -136,10 +134,42 @@ def summarise(path, model: str | None = None) -> dict:
             "invalid_pages": sorted(n for n in cited if not 1 <= n <= len(pages))}
 
 
-def run(inputs: list[Path], params: dict, ctx) -> dict:
-    if len(inputs) != 1:
-        return {"ok": False, "message": "Pick one PDF.", "outputs": [], "data": {}}
+def with_ocr(path, ctx: RunContext):
+    """If any page has no text, use Person B's ocr tool. Falls back to the original file."""
+    spec = REGISTRY.get("ocr")
+    if spec is None or all(text.strip() for text in extract_pages(path)):
+        return path
+    result = run_tool(spec, [Path(path)], {}, ctx)
+    outputs = normalize_outputs(result) if result.ok else []
+    return outputs[0].path if outputs else path
+
+
+def run(inputs: list[Path], params: dict, ctx: RunContext) -> ToolResult:
+    path = with_ocr(inputs[0], ctx)
     if params.get("action", "ask") == "summary":
-        return {"ok": True, "message": "Summary ready.", "outputs": [], "data": summarise(inputs[0])}
-    result = ask(inputs[0], params["question"])
-    return {"ok": True, "message": result["answer"], "outputs": [], "data": result}
+        data = summarise(path)
+        return ToolResult(ok=True, message="This PDF has no readable text." if data["needs_ocr"] else "Summary ready.", data=data)
+    question = (params.get("question") or "").strip()
+    if not question:
+        raise ToolError("Type a question.")
+    data = ask(path, question)
+    return ToolResult(ok=True, message=data["answer"], data=data)
+
+
+TOOL = ToolSpec(
+    id="assistant_qa",
+    name="Ask this PDF",
+    tier="studio",
+    adobe_feature="Get summaries, insights, and answers",
+    description="Get a summary or ask a question. Every answer cites its pages, and it says so when the document doesn't answer.",
+    params_schema={
+        "type": "object",
+        "properties": {
+            "action": {"type": "string", "enum": ["ask", "summary"], "default": "ask"},
+            "question": {"type": "string", "description": "The question to answer from the document"},
+        },
+    },
+    run=run,
+    min_files=1,
+    max_files=1,
+)

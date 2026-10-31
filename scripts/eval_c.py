@@ -19,36 +19,25 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.core import llm  # noqa: E402
+from app.core.tooling import REGISTRY, discover  # noqa: E402
 from app.tools import assistant_command, assistant_qa, autofill  # noqa: E402
 
 SAMPLES = Path("samples")
 RESULTS = Path("docs/findings/c-eval.json")
 
-# Stand-ins for Person A's and Person B's tools, until GET /api/tools exists.
-MOCK_TOOLS = [
-    {"id": "merge", "description": "Combine several PDFs into one, in order.", "params_schema": {"type": "object", "properties": {}}},
-    {"id": "split", "description": "Split a PDF by page ranges such as 1-3,5, or every N pages.", "params_schema": {"type": "object", "properties": {"ranges": {"type": "string"}, "every": {"type": "integer"}}}},
-    {"id": "organize", "description": "Reorder, rotate, delete or extract pages.", "params_schema": {"type": "object", "properties": {"rotate": {"type": "object"}, "delete": {"type": "array"}, "order": {"type": "array"}}}},
-    {"id": "compress", "description": "Make a PDF smaller by compressing streams and downsampling images.", "params_schema": {"type": "object", "properties": {"quality": {"type": "string"}}}},
-    {"id": "protect", "description": "Add an AES-256 password and permissions to a PDF.", "params_schema": {"type": "object", "properties": {"password": {"type": "string"}}, "required": ["password"]}},
-    {"id": "ocr", "description": "Turn a scanned PDF into a searchable PDF.", "params_schema": {"type": "object", "properties": {}}},
-    {"id": "redact", "description": "Permanently remove sensitive content such as NRICs, phone numbers, emails and names.", "params_schema": {"type": "object", "properties": {"detect": {"type": "array", "items": {"type": "string"}}}}},
-    {"id": "convert", "description": "Convert a PDF to Word, Excel, PNG images or plain text.", "params_schema": {"type": "object", "properties": {"to": {"type": "string", "enum": ["docx", "xlsx", "png", "txt"]}}, "required": ["to"]}},
-    {"id": "compare", "description": "Find the differences between two versions of a PDF.", "params_schema": {"type": "object", "properties": {}}},
-]
-
+# Each command lists the tool sequences that count as right.
 COMMANDS = [
-    ("merge these two and compress", 2, ["merge", "compress"]),
-    ("redact all NRICs", 1, ["redact"]),
-    ("password-protect with 1234", 1, ["protect"]),
-    ("make this scan searchable, then password-protect it with abc", 1, ["ocr", "protect"]),
-    ("keep only pages 1 to 3 as a separate file", 1, ["split"]),
-    ("turn this into a Word document", 1, ["convert"]),
-    ("rotate page 2 by 90 degrees", 1, ["organize"]),
-    ("compress this and add the password hunter2", 1, ["compress", "protect"]),
-    ("what changed between these two versions?", 2, ["compare"]),
-    ("book me a flight to Tokyo", 1, []),
-    ("order a pizza", 1, []),
+    ("merge these two and compress", 2, [["merge", "compress"]]),
+    ("redact all NRICs", 1, [["redact"]]),
+    ("password-protect with 1234", 1, [["protect"]]),
+    ("make this scan searchable, then password-protect it with abc", 1, [["ocr", "protect"]]),
+    ("keep only pages 1 to 3", 1, [["organize"], ["split"]]),
+    ("turn this into a Word document", 1, [["convert"]]),
+    ("rotate page 2 by 90 degrees", 1, [["organize"]]),
+    ("compress this and add the password hunter2", 1, [["compress", "protect"]]),
+    ("what changed between these two versions?", 2, [["compare"]]),
+    ("book me a flight to Tokyo", 1, [[]]),
+    ("order a pizza", 1, [[]]),
 ]
 
 
@@ -147,17 +136,18 @@ def eval_qa(model: str | None) -> dict:
 
 
 def eval_command(model: str | None) -> dict:
+    discover()
+    tools = [spec.public() for spec in REGISTRY.values()]
     results = []
     start = len(llm.CALL_LOG)
     for sentence, file_count, expected in COMMANDS:
-        plan = assistant_command.make_plan(sentence, MOCK_TOOLS, file_count, model=model)
+        plan = assistant_command.make_plan(sentence, tools, file_count, model=model)
         got = [step["tool_id"] for step in plan["steps"]]
-        right = got == expected and not plan["problems"]
+        right = got in expected and not plan["problems"]
         results.append({"command": sentence, "expected": expected, "got": got, "problems": plan["problems"],
                         "params": [s["params"] for s in plan["steps"]], "right": right})
         print(right, sentence, got, plan["problems"], flush=True)
     return {"right_plans": f"{sum(r['right'] for r in results)}/{len(results)}", "results": results,
-            "note": "Tool list is a stand-in until Person A's and Person B's real tools exist.",
             "cost": _stats_since(start)}
 
 

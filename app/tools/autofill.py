@@ -2,8 +2,6 @@
 
 The model only ever sees field descriptions and profile KEYS. It returns which key
 goes in which field, and the values are filled in locally with pypdf.
-
-Plain functions for now. Wrap `run` in a ToolSpec once app/core/tooling.py lands.
 """
 import hashlib
 import json
@@ -15,10 +13,11 @@ from pypdf import PdfReader, PdfWriter
 from pypdf.constants import UserAccessPermissions
 
 from app.core import llm
+from app.core.storage import STORAGE_DIR
+from app.core.tooling import Output, RunContext, ToolError, ToolResult, ToolSpec
 
-STORAGE = Path("storage")
-PROFILE_PATH = STORAGE / "profile.json"
-CACHE_PATH = STORAGE / "autofill_cache.json"
+PROFILE_PATH = STORAGE_DIR / "profile.json"
+CACHE_PATH = STORAGE_DIR / "autofill_cache.json"
 LOW_CONFIDENCE = 0.7
 MAX_LABEL_CHARS = 260
 
@@ -198,6 +197,17 @@ def derive_profile(profile: dict) -> dict:
     return values
 
 
+def short_label(field: dict) -> str:
+    """What the review screen shows. Long tooltips often open with boilerplate shared by every
+    field, so prefer the sentence that says what to enter."""
+    text = " ".join((field["tooltip"] or field["label"] or field["name"].split(".")[-1]).split())
+    if len(text) <= 80:
+        return text
+    sentences = [part.strip() for part in re.split(r"(?<=[.:;?!])\s+", text) if part.strip()]
+    asks = [part for part in sentences if re.match(r"(enter|select|type|provide|choose)\b", part, re.I)]
+    return (asks[0] if asks else sentences[-1])[:120]
+
+
 def build_prompt(fields: list[dict], keys: list[str]) -> str:
     """The whole of what the model sees. Field descriptions and key names, no values."""
     described = []
@@ -242,12 +252,14 @@ def map_fields(path, profile: dict, model: str | None = None, use_memory: bool =
     values = derive_profile(profile)
     remembered = _load_json(CACHE_PATH).get(signature) if use_memory else None
 
+    sent_to_model = None
     if remembered:
         source = "learned"
         chosen = {f["name"]: (remembered["mapping"].get(f["name"]), 1.0) for f in fields}
     else:
         source = "model"
-        reply = llm.complete(MAP_SYSTEM, build_prompt(fields, sorted(values)), json_schema=MAP_SCHEMA, model=model)
+        sent_to_model = build_prompt(fields, sorted(values))
+        reply = llm.complete(MAP_SYSTEM, sent_to_model, json_schema=MAP_SCHEMA, model=model)
         by_id = {m["id"]: m for m in reply["mappings"]}
         chosen = {}
         for number, field in enumerate(fields):
@@ -260,7 +272,7 @@ def map_fields(path, profile: dict, model: str | None = None, use_memory: bool =
         key, confidence = chosen[field["name"]]
         rows.append({
             "field": field["name"],
-            "shown_as": field["tooltip"] or field["label"] or field["name"].split(".")[-1],
+            "shown_as": short_label(field),
             "type": field["type"],
             "options": field["options"],
             "key": key,
@@ -268,7 +280,7 @@ def map_fields(path, profile: dict, model: str | None = None, use_memory: bool =
             "confidence": round(confidence, 2),
             "needs_review": bool(key) and confidence < LOW_CONFIDENCE,
         })
-    return {"signature": signature, "source": source, "fields": rows}
+    return {"signature": signature, "source": source, "fields": rows, "sent_to_model": sent_to_model}
 
 
 def _coerce(field: dict, value: str):
@@ -329,27 +341,50 @@ def apply_review(path, signature: str, profile: dict, mapping: dict, overrides: 
     return result
 
 
-def run(inputs: list[Path], params: dict, ctx) -> dict:
+def run(inputs: list[Path], params: dict, ctx: RunContext) -> ToolResult:
     action = params.get("action", "map")
     if action == "get_profile":
-        return {"ok": True, "message": "Profile loaded.", "outputs": [],
-                "data": {"profile": load_profile(), "keys": PROFILE_KEYS}}
+        return ToolResult(ok=True, message="Profile loaded.", data={"profile": load_profile(), "keys": PROFILE_KEYS})
     if action == "save_profile":
-        save_profile(params["profile"])
-        return {"ok": True, "message": "Profile saved.", "outputs": [], "data": {}}
+        save_profile(params.get("profile") or {})
+        return ToolResult(ok=True, message="Profile saved. It stays on this machine.")
     if len(inputs) != 1:
-        return {"ok": False, "message": "Pick one PDF form.", "outputs": [], "data": {}}
+        raise ToolError("Pick one PDF form.")
 
     if action == "map":
-        result = map_fields(inputs[0], load_profile())
+        profile = load_profile()
+        if not profile:
+            raise ToolError("Your profile is empty. Fill it in first.")
+        result = map_fields(inputs[0], profile)
+        result["values"] = derive_profile(profile)
         mapped = sum(1 for row in result["fields"] if row["key"])
-        return {"ok": True, "message": f"Matched {mapped} of {len(result['fields'])} fields.",
-                "outputs": [], "data": result}
+        return ToolResult(ok=True, message=f"Matched {mapped} of {len(result['fields'])} fields.", data=result)
     if action == "fill":
-        out_path = Path(ctx.output_dir) / f"{Path(inputs[0]).stem}_filled.pdf"
-        result = apply_review(inputs[0], params["signature"], load_profile(), params["mapping"],
-                              params.get("overrides"), out_path)
-        return {"ok": True, "message": f"Filled {len(result['filled'])} fields.",
-                "outputs": [{"path": out_path, "filename": out_path.name, "mime": "application/pdf"}],
-                "data": result}
-    return {"ok": False, "message": f"Unknown action: {action}", "outputs": [], "data": {}}
+        out = ctx.work_dir / f"{Path(ctx.filenames[0]).stem}_filled.pdf"
+        result = apply_review(inputs[0], params["signature"], load_profile(), params.get("mapping") or {},
+                              params.get("overrides"), out)
+        return ToolResult(ok=True, message=f"Filled {len(result['filled'])} fields.",
+                          outputs=[Output(out, out.name, "application/pdf")], data=result)
+    raise ToolError(f"Unknown action: {action}")
+
+
+TOOL = ToolSpec(
+    id="autofill",
+    name="Smart autofill",
+    tier="ours",
+    adobe_feature="Not in Acrobat",
+    description="Fill any PDF form from your saved profile. The AI sees field names and profile keys, never your details.",
+    params_schema={
+        "type": "object",
+        "properties": {
+            "action": {"type": "string", "enum": ["get_profile", "save_profile", "map", "fill"], "default": "map"},
+            "profile": {"type": "object", "description": "For save_profile: the user's details"},
+            "signature": {"type": "string", "description": "For fill: the form signature returned by map"},
+            "mapping": {"type": "object", "description": "For fill: field name -> profile key, after review"},
+            "overrides": {"type": "object", "description": "For fill: field name -> value typed by hand"},
+        },
+    },
+    run=run,
+    min_files=0,
+    max_files=1,
+)
