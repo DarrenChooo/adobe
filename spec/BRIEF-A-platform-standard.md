@@ -12,13 +12,13 @@ Others are waiting on you. Push to `main` by **H0:45**:
 2. `app/core/storage.py`: save uploads and outputs under `storage/<file_id>/` (git-ignore `storage/`); look up by id.
 3. `app/core/tooling.py`: `ToolSpec`, `ToolResult`, registry, a run wrapper that catches errors and returns `{ok: false, message}`.
 4. `app/core/pdf_utils.py`: `open_pdf`, `page_count`, `render_page_png(path, page, dpi)` (pypdfium2), `text_with_boxes(path, page)` (pypdfium2 or pdfplumber). B and C rely on these.
-5. React app in `frontend/` (Vite, TypeScript by default, react-router, react-pdf):
+5. React app in `frontend/` (Vite, TypeScript, react-router, react-pdf), titled **Fill Me**:
    - `vite.config.ts` proxies `/api` and `/files` to port 8000.
    - `src/api.ts` has typed helpers: `upload`, `listTools`, `runTool`, `fileUrl`.
    - `src/tools/registry.ts` collects tool files with `import.meta.glob`, exactly as in SPEC 5.1.
    - `src/App.tsx` is the shell: drag-and-drop upload, file list with select boxes, a tool picker built from `GET /api/tools` merged with the registry, the chosen tool's `Panel`, a result panel with download, a PDF preview, and every tool's `routes` added to the router.
 6. `app/tools/echo.py` + `frontend/src/tools/echo.tsx`: returns the input unchanged. Proves the pipeline end to end.
-7. `requirements.txt`, `frontend/package.json`, `README.md` (how to install and run both halves), `.gitignore` (`storage/`, `node_modules/`, `frontend/dist/`, `.env`), `LICENSE` (team's chosen licence), `samples/` with 2-3 small made-up PDFs, one of them with form fields.
+7. `requirements.txt`, `frontend/package.json`, `README.md` (how to install and run both halves), `.gitignore` (`storage/`, `node_modules/`, `frontend/dist/`, `.env`), `LICENSE` (MIT, copyright "the Fill Me contributors"), `.env.example` listing `LLM_BASE_URL`, `LLM_MODEL`, `SOCLAAS_API_KEY` with no real values, `samples/` with 2-3 small made-up PDFs, one of them with form fields.
 8. Run commands in the README:
    - **Dev:** `uvicorn app.main:app --reload` and, in `frontend/`, `npm install && npm run dev`.
    - **Demo:** `npm run build`, then just uvicorn.

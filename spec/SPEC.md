@@ -1,6 +1,8 @@
-# Build Spec: open-source Acrobat (working name, pick a real one)
+# Build Spec: Fill Me
 
-Status: DRAFT, written 31 Oct 2026. Items marked **[DECIDE]** need the team's yes before building.
+**Fill Me** is a free, MIT-licensed, open-source alternative to every paid tier of Adobe Acrobat, plus smart autofill.
+
+Status: written 31 Oct 2026. Stack, language, AI provider, name and licence are decided (section 8). Items still marked **[DECIDE]** need the team's yes.
 Track: NUS Hackers, Autonomous SG 2026 ("Pick an opaque app, service, device, or system. Figure out how it works, then use what you uncover to build something even better.").
 
 Each person hands **this file plus their own brief** to their coding agent:
@@ -68,7 +70,8 @@ Each workstream collects one or two concrete findings about how Acrobat or PDFs 
 ## 5. Architecture (stack DECIDED 31 Oct: Python FastAPI + React)
 
 **Stack:** a Python FastAPI server that does all the PDF work, plus a React front end built with Vite, all running locally.
-- **Front-end language:** TypeScript by default. **[DECIDE]** switch to plain JavaScript if the team prefers.
+- **Front-end language:** TypeScript (decided).
+- **AI provider:** SoCLaaS, NUS School of Computing's free language-model service (decided). It speaks the OpenAI chat-completions format at `https://soclaas-api.comp.nus.edu.sg/v1`, so `app/core/llm.py` uses a standard OpenAI-compatible client. Base URL, model and key come from environment variables. That means anyone outside NUS can point Fill Me at another OpenAI-compatible endpoint, including a local model, with no code change.
 - **During development:** two processes run side by side:
   - `uvicorn app.main:app --reload` for the server on port 8000
   - `npm run dev` inside `frontend/` for the page on port 5173, which forwards `/api` and `/files` calls to port 8000 through Vite's proxy setting
@@ -170,15 +173,15 @@ Each owner produces measured numbers for their tools. Never guess them:
 - **A:** time to merge, split and protect a sample file; compression size before and after.
 - **B:** OCR accuracy on a scan where the right text is known; redaction: how many planted fake NRICs and phone numbers were caught out of the total, plus a "copy-paste leak test" (pass = no hidden text left); compare: planted edits found out of the total.
 - **C:** autofill: fields filled correctly out of the total, on real public blank forms; Q&A: answers with correct page citations out of a set of questions with known answers, plus refusals on questions the document can't answer; AI cost per operation (tokens times the model's price).
-- **Pitch owner:** Adobe price per user per year (section 2) vs ours (US$0 software plus measured AI cost per operation); the sourced Acrobat user figure.
+- **Pitch owner:** Adobe price per user per year (section 2) vs ours: US$0 software, and US$0 AI on SoCLaaS (free, rate-limited). For users outside NUS, show measured tokens per operation so they can price it on any provider. Also the sourced Acrobat user figure.
 
 A **coverage page** (`/coverage`, built by A from `GET /api/tools`) shows section 3 live: each Adobe feature, our tool, and whether it works. That's the demo's opening shot.
 
 ## 8. Open decisions (team, before H0:30)
 
-1. ~~Stack~~ **DECIDED 31 Oct: Python FastAPI + React (Vite).** Still open: TypeScript (default) or plain JavaScript.
-2. **[DECIDE] AI provider and whose API key** pays. Proposed: one cheap, fast model for routing and mapping, with an option to use a local model.
-3. **[DECIDE] Project name** (avoid "Adobe" and "Acrobat" in the name, which are trademarks).
-4. **[DECIDE] Licence:** MIT proposed. Add `LICENSE` to the repo in hour one.
+1. **DECIDED 31 Oct: stack = Python FastAPI + React (Vite), front end in TypeScript.**
+2. **DECIDED 31 Oct: AI provider = SoCLaaS** (free, OpenAI-compatible). Each person running AI features needs their own SoCLaaS key in a git-ignored `.env`. **[CHECK]** that every teammate who runs Person C's tools can get a key. Nobody has read SoCLaaS's privacy page yet, so demo with made-up personal data only.
+3. **DECIDED 31 Oct: name = "Fill Me".**
+4. **DECIDED 31 Oct: licence = MIT.** `LICENSE` file in hour one (Person A).
 5. **[DECIDE] Who is A, B, C**, and who owns the pitch numbers.
 6. **[ASK ORGANISERS]** hackathon end time, demo length, and whether code written before today is allowed.

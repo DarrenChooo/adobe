@@ -7,8 +7,16 @@ Owner: ______  Branch prefix: `c/`
 Build what Adobe charges the most for (Studio, US$24.99/mo, or the AI Assistant Plus add-on, US$4.99/mo), plus our own headline feature, smart autofill. **Rule for every AI feature: the model decides and explains; our real tools do the work on the PDF.**
 
 ## Before A pushes the scaffold (H0:00-H0:45)
-- **[DECIDE with team]** which model provider and whose API key. Keep the key in a `.env` file that is git-ignored. **Never commit it.**
-- Write `app/core/llm.py` (you own this one file under `core/`): `complete(system, user, json_schema=None) -> dict|str`, one place to switch provider or point at a local model. Log tokens used per call, because you need cost per operation.
+- **Provider: SoCLaaS** (NUS SoC's free service). Its notes date from 28 Oct 2026, so check them against the live service:
+  - **Format:** OpenAI-compatible, base URL `https://soclaas-api.comp.nus.edu.sg/v1`, main endpoint `POST /chat/completions`. It also has embeddings.
+  - **Models:** seen on 28 Oct: `ornith1.5:35b`, `qwen3-coder-next`, `qwen3.6:35b`, `qwen3.8:27b`. Run `GET /v1/models` first for the live list; the DocHub models page was out of date.
+  - **Cost and limits:** free, but rate-limited. Expect slower answers than a paid API, and keep one call per form or question.
+  - **Model choice:** pick the model per task by testing which one returns clean JSON most reliably.
+- Your own SoCLaaS key goes in a git-ignored `.env` as `SOCLAAS_API_KEY`, with `LLM_BASE_URL` and `LLM_MODEL` beside it. **Never commit it, never paste it into chat or logs.**
+- Write `app/core/llm.py` (you own this one file under `core/`): `complete(system, user, json_schema=None) -> dict|str` using the `openai` Python package (MIT) pointed at `LLM_BASE_URL`.
+  - **Don't rely on server-side JSON mode:** ask for JSON in the prompt, parse it, validate it against the schema, and retry once on failure.
+  - **Logging:** record tokens in and out plus time taken per call.
+  - **Switching:** this is the one place to change provider or point at a local model.
 - Collect 5-10 **blank** public PDF forms with real fillable fields (e.g. government or airline forms anyone can download). Check each has fields (pypdf `get_fields()`); drop the ones that don't. Make a made-up profile JSON.
 
 ## Your tools (each = `app/tools/<id>.py` + `frontend/src/tools/<id>.tsx` + `tests/test_<id>.py`)
@@ -35,7 +43,7 @@ Put these in `docs/findings/c-numbers.md`:
 - Autofill: fields correct out of the total per form and overall, plus how many the user had to fix.
 - Q&A: correct citations out of total questions; correct refusals out of total unanswerable questions.
 - Command bar: plans that ran correctly out of the commands tried.
-- **Cost per operation:** tokens used times the model's published price per token (cite the pricing page).
+- **Cost per operation:** US$0 on SoCLaaS. Also report tokens and seconds per operation (average over your test runs), so anyone can price Fill Me on a paid provider.
 
 ## Do not touch
 Anything under `app/core/` except `llm.py`, and anything in `frontend/src/` outside `frontend/src/tools/<your tool ids>.tsx` (A owns those). The profile page is a route your `autofill.tsx` exports (e.g. `/profile`). Other people's tool files.
