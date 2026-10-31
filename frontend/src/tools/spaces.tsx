@@ -150,7 +150,7 @@ function SpacesPage() {
     <div className="setup" style={{ maxWidth: "none" }}>
       <div className="spaces-head">
         <div className="setup-head"><h1>PDF Spaces</h1></div>
-        <button className="btn primary" onClick={() => setCreating((c) => !c)}>{creating ? "Close" : "New Space"}</button>
+        <button className={`btn${creating ? "" : " primary"}`} onClick={() => setCreating((c) => !c)}>{creating ? "Close" : "New Space"}</button>
       </div>
       <p className="lead">A Space keeps related PDFs together with your notes, and lets you ask one question across all of them.</p>
 

@@ -1,6 +1,6 @@
 # Handover: Acrobat-style frontend rebuild (branch `b/acrobat-ui`)
 
-Last updated: 31 Oct 2026, 14:45 SGT (wrap-up snapshot; helpers told to stop). Submission deadline 16:15 SGT.
+Last updated: 31 Oct 2026, 14:55 SGT (all three helpers finished and stopped). Submission deadline 16:15 SGT.
 
 ## What this branch is
 A ground-up rebuild of the frontend so it works like Adobe Acrobat. Server code and the HTTP API are
@@ -36,7 +36,7 @@ Shared look: building-block classes in `frontend/src/styles.css`. Names, icons, 
 |---|---|
 | Combine, Compress, Split, Organize pages, Create a PDF, Protect, Remove a password, Export, Scan & OCR | DONE: each ran end to end through the new frame and was checked by screenshot. Office-to-PDF (in Create) needs LibreOffice installed; it shows the server's message without it. |
 | Redact, Prepare a web form, Edit & comment, Fill & Sign, Request e-signatures + Agreements page | DONE (14:44): each ran end to end through the new frame and was checked by screenshot. Redact: 14 found, leak test passed; audit of b_naive_redaction.pdf found 3 hidden texts. E-sign: link created, signed on /sign/<id>, shown Signed on /agreements. Web form: created, submitted on /f/<id>; flat PDF draw-a-field path works. |
-| Smart Autofill + profile page, autofill_memory, AI Assistant, Ask AI to do it, Generate, PDF Spaces, Compare | IN PROGRESS at snapshot; see the commit after this one for the helper's final status. |
+| Smart Autofill + profile page, autofill_memory, AI Assistant, Ask AI to do it, Generate, PDF Spaces, Compare | DONE (14:51), checked in the browser. Real runs: Compare (5 changes on b_contract_v1/v2), Spaces create/notes/add files, profile custom field survives reload, "Forms Fill Me remembers" list + Forget, autofill "Remembered from last time" path + fill. `autofill_memory` tests: 5 passed. AI answers could NOT run (see issue 6), so the AI success views were checked with replayed fake responses only. Compare change: when there are text changes the page lists them first, with an "Open the report" button. |
 
 ## Known open issues
 1. **Opening a document by direct link to a file the browser has never seen sticks on "Opening…"** (seen 14:43 with
@@ -46,9 +46,11 @@ Shared look: building-block classes in `frontend/src/styles.css`. Names, icons, 
    frame's file list so the tab shows its name instead of "Document"). Opening files from Home, Recent or a tool works.
 2. Password-protected PDFs: the centre view now hands them to the PDF preview so it can say "password-protected,
    unlock it first"; untested because of issue 1.
-3. Whole-branch typecheck and build not yet run clean (helpers were mid-edit at the snapshot).
+3. Whole-project typecheck reported clean by the AI helper at 14:51; `npm run build` not yet run on the final state.
 4. Files uploaded straight to `POST /api/files` (not through the app) get tabs named "Document"; same root as issue 1.
 5. `SchemaForm`, `ResultPanel`, `PdfPreview` still use the old `.empty` class (unstyled message text).
+6. **AI features need `LLM_MODEL` in `.env`.** Every AI call on the test server returned exactly `LLM_MODEL is not set. Add it to .env.` (`SOCLAAS_API_KEY` was set). This applies to main too: set it on the demo laptop.
+7. A file opened only by its `/doc/<id>` link never joins the app's file list, so Compare and Spaces can't offer it (same root as issue 1).
 
 ## Autofill memory (new, does not touch Person C's code)
 `app/tools/autofill_memory.py` reads C's `storage/autofill_cache.json` and keeps its own
