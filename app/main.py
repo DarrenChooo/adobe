@@ -131,4 +131,5 @@ if DIST.exists():
         target = (DIST / path).resolve()
         if path and target.is_file() and DIST.resolve() in target.parents:
             return FileResponse(target)
-        return FileResponse(DIST / "index.html")
+        # Never cache the page shell, so a rebuild shows up on the next reload.
+        return FileResponse(DIST / "index.html", headers={"Cache-Control": "no-cache"})

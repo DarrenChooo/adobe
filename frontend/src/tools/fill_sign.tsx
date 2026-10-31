@@ -159,6 +159,8 @@ function FillSignPane(props: ToolPaneProps) {
           className="btn primary block"
           disabled={busy || (!nChanged && !stamps.length)}
           onClick={() => {
+            // Remember what you signed with, placed or not, so it comes back next time.
+            if (sig) rememberSig(sig);
             stamps.forEach((s) => s.kind === "image" && s.image && rememberSig(s.image));
             setSaved(loadSigs());
             run("fill_sign", [id], {
