@@ -1,0 +1,524 @@
+{
+  "autofill": {
+    "totals": {
+      "fields": 460,
+      "correct": 453,
+      "must_fill": 35,
+      "must_fill_correct": 31,
+      "wrong_fills": 4
+    },
+    "forms": {
+      "uscis_g1145.pdf": {
+        "fields": 5,
+        "correct": 5,
+        "must_fill": 4,
+        "must_fill_correct": 4,
+        "wrong_fills": 0
+      },
+      "uscis_ar11.pdf": {
+        "fields": 27,
+        "correct": 26,
+        "must_fill": 6,
+        "must_fill_correct": 5,
+        "wrong_fills": 1
+      },
+      "uscis_i9.pdf": {
+        "fields": 128,
+        "correct": 128,
+        "must_fill": 8,
+        "must_fill_correct": 8,
+        "wrong_fills": 0
+      },
+      "irs_w4.pdf": {
+        "fields": 48,
+        "correct": 48,
+        "must_fill": 4,
+        "must_fill_correct": 4,
+        "wrong_fills": 0
+      },
+      "irs_w9.pdf": {
+        "fields": 23,
+        "correct": 22,
+        "must_fill": 3,
+        "must_fill_correct": 3,
+        "wrong_fills": 1
+      },
+      "irs_8822.pdf": {
+        "fields": 25,
+        "correct": 22,
+        "must_fill": 4,
+        "must_fill_correct": 1,
+        "wrong_fills": 0
+      },
+      "irs_4506t.pdf": {
+        "fields": 28,
+        "correct": 28,
+        "must_fill": 3,
+        "must_fill_correct": 3,
+        "wrong_fills": 0
+      },
+      "irs_2848.pdf": {
+        "fields": 87,
+        "correct": 86,
+        "must_fill": 3,
+        "must_fill_correct": 3,
+        "wrong_fills": 1
+      },
+      "irs_ss4.pdf": {
+        "fields": 89,
+        "correct": 88,
+        "must_fill": 0,
+        "must_fill_correct": 0,
+        "wrong_fills": 1
+      }
+    },
+    "mistakes": [
+      {
+        "form": "uscis_ar11.pdf",
+        "field": "S1_DateOfBirth",
+        "shown_as": "Enter your Date of Birth.",
+        "got": "date_of_birth_ddmmyyyy",
+        "accepted": [
+          "date_of_birth_mmddyyyy"
+        ],
+        "confidence": 0.9
+      },
+      {
+        "form": "irs_w9.pdf",
+        "field": "f1_11",
+        "shown_as": "Social security",
+        "got": "nric",
+        "accepted": [
+          null
+        ],
+        "confidence": 0.7
+      },
+      {
+        "form": "irs_8822.pdf",
+        "field": "f1_17",
+        "shown_as": "If foreign address, also complete spaces below, see New address instructions.",
+        "got": null,
+        "accepted": [
+          "address_line1",
+          "full_address"
+        ],
+        "confidence": 1.0
+      },
+      {
+        "form": "irs_8822.pdf",
+        "field": "f1_18",
+        "shown_as": "Foreign country name",
+        "got": null,
+        "accepted": [
+          "country"
+        ],
+        "confidence": 1.0
+      },
+      {
+        "form": "irs_8822.pdf",
+        "field": "f1_20",
+        "shown_as": "Foreign postal code",
+        "got": null,
+        "accepted": [
+          "postal_code"
+        ],
+        "confidence": 1.0
+      },
+      {
+        "form": "irs_2848.pdf",
+        "field": "TaxpayerIDSSN",
+        "shown_as": "Taxpayer identification",
+        "got": "nric",
+        "accepted": [
+          null
+        ],
+        "confidence": 0.8
+      },
+      {
+        "form": "irs_ss4.pdf",
+        "field": "f1_2",
+        "shown_as": "Internal Revenue Service 1 Legal name of entity (or individual) for whom the EIN is being ",
+        "got": "full_name",
+        "accepted": [
+          null
+        ],
+        "confidence": 0.9
+      }
+    ],
+    "cost": {
+      "calls": 9,
+      "avg_tokens_in": 2718.1,
+      "avg_tokens_out": 1605.6,
+      "avg_seconds": 20.5
+    },
+    "model": "qwen3.6:35b"
+  },
+  "qa": {
+    "answerable": [
+      {
+        "question": "Who can claim exemption from withholding for 2026?",
+        "correct": true,
+        "right_page": true,
+        "contains": true,
+        "all_verified": true,
+        "answer": "You may claim exemption from withholding for 2026 if you meet both of the following conditions: you had no federal income tax liability in 2025 and you expect to have no federal income tax liability i",
+        "citations": [
+          {
+            "page": 2,
+            "quote": "You may claim exemption from withholding for 2026 if you meet both of the following conditions: you had no federal income tax liability in 2025 and you expect to have no federal income tax liability in 2026.",
+            "page_exists": true,
+            "quote_found": true,
+            "verified": true
+          }
+        ]
+      },
+      {
+        "question": "What should a nonresident alien read before completing this form?",
+        "correct": true,
+        "right_page": true,
+        "contains": true,
+        "all_verified": true,
+        "answer": "A nonresident alien should read Notice 1392, Supplemental Form W-4 Instructions for Nonresident Aliens, before completing this form.",
+        "citations": [
+          {
+            "page": 2,
+            "quote": "Nonresident alien. If you’re a nonresident alien, see Notice 1392, Supplemental Form W-4 Instructions for Nonresident Aliens, before completing this form.",
+            "page_exists": true,
+            "quote_found": true,
+            "verified": true
+          }
+        ]
+      },
+      {
+        "question": "Which publication covers tax withholding and estimated tax?",
+        "correct": true,
+        "right_page": true,
+        "contains": true,
+        "all_verified": true,
+        "answer": "Pub. 505, Tax Withholding and Estimated Tax",
+        "citations": [
+          {
+            "page": 2,
+            "quote": "For more information on withholding and when you must furnish a new Form W-4, see Pub. 505, Tax Withholding and Estimated Tax.",
+            "page_exists": true,
+            "quote_found": true,
+            "verified": true
+          }
+        ]
+      },
+      {
+        "question": "Which form should a foreign person use instead of Form W-9?",
+        "correct": true,
+        "right_page": true,
+        "contains": true,
+        "all_verified": true,
+        "answer": "A foreign person should use the appropriate Form W-8 or Form 8233 instead of Form W-9. Additionally, if the foreign person is a qualified foreign pension fund under specific regulations or a partnersh",
+        "citations": [
+          {
+            "page": 2,
+            "quote": "If you are a foreign person or the U.S. branch of a foreign bank that has elected to be treated as a U.S. person... do not use Form W-9. Instead, use the appropriate Form W-8 or Form 8233",
+            "page_exists": true,
+            "quote_found": true,
+            "verified": true
+          },
+          {
+            "page": 2,
+            "quote": "If you are a qualified foreign pension fund under Regulations section 1.897(l)-1(d), or a partnership that is wholly owned by qualified foreign pension funds, that is treated as a non-foreign person for purposes of section 1445 withholding, do not use Form W-9. Instead, use Form W-8EXP",
+            "page_exists": true,
+            "quote_found": true,
+            "verified": true
+          }
+        ]
+      },
+      {
+        "question": "What does FATCA stand for?",
+        "correct": true,
+        "right_page": true,
+        "contains": true,
+        "all_verified": true,
+        "answer": "FATCA stands for the Foreign Account Tax Compliance Act.",
+        "citations": [
+          {
+            "page": 3,
+            "quote": "The Foreign Account Tax Compliance Act (FATCA) requires a participating foreign financial institution to report all U.S. account holders that are specified U.S. persons.",
+            "page_exists": true,
+            "quote_found": true,
+            "verified": true
+          }
+        ]
+      },
+      {
+        "question": "On which line do you enter a business name or DBA name?",
+        "correct": true,
+        "right_page": true,
+        "contains": true,
+        "all_verified": true,
+        "answer": "You enter a business name or DBA name on line 2.",
+        "citations": [
+          {
+            "page": 1,
+            "quote": "2 Business name/disregarded entity name, if different from above.",
+            "page_exists": true,
+            "quote_found": true,
+            "verified": true
+          },
+          {
+            "page": 3,
+            "quote": "Line 2 If you have a business name, trade name, DBA name, or disregarded entity name, enter it on line 2.",
+            "page_exists": true,
+            "quote_found": true,
+            "verified": true
+          }
+        ]
+      }
+    ],
+    "unanswerable": [
+      {
+        "question": "What is the GST rate in Singapore?",
+        "refused": true,
+        "answer": "The document doesn't say."
+      },
+      {
+        "question": "Who is the current Commissioner of the IRS?",
+        "refused": true,
+        "answer": "The document doesn't say."
+      },
+      {
+        "question": "How many days of annual leave must an employer give?",
+        "refused": true,
+        "answer": "The document doesn't say."
+      },
+      {
+        "question": "What is the deadline for filing Singapore income tax?",
+        "refused": true,
+        "answer": "The document doesn't say."
+      },
+      {
+        "question": "What is the IRS's customer service phone number in Tokyo?",
+        "refused": true,
+        "answer": "The document doesn't say."
+      }
+    ],
+    "correct_citations": "6/6",
+    "correct_refusals": "5/5",
+    "cost": {
+      "calls": 14,
+      "avg_tokens_in": 10041.4,
+      "avg_tokens_out": 72.4,
+      "avg_seconds": 1.9
+    },
+    "model": "qwen3.6:35b"
+  },
+  "command": {
+    "right_plans": "11/11",
+    "results": [
+      {
+        "command": "merge these two and compress",
+        "expected": [
+          [
+            "merge",
+            "compress"
+          ]
+        ],
+        "got": [
+          "merge",
+          "compress"
+        ],
+        "problems": [],
+        "params": [
+          {},
+          {
+            "level": "medium"
+          }
+        ],
+        "right": true
+      },
+      {
+        "command": "redact all NRICs",
+        "expected": [
+          [
+            "redact"
+          ]
+        ],
+        "got": [
+          "redact"
+        ],
+        "problems": [],
+        "params": [
+          {
+            "mode": "apply",
+            "types": [
+              "nric"
+            ]
+          }
+        ],
+        "right": true
+      },
+      {
+        "command": "password-protect with 1234",
+        "expected": [
+          [
+            "protect"
+          ]
+        ],
+        "got": [
+          "protect"
+        ],
+        "problems": [],
+        "params": [
+          {
+            "password": "1234"
+          }
+        ],
+        "right": true
+      },
+      {
+        "command": "make this scan searchable, then password-protect it with abc",
+        "expected": [
+          [
+            "ocr",
+            "protect"
+          ]
+        ],
+        "got": [
+          "ocr",
+          "protect"
+        ],
+        "problems": [],
+        "params": [
+          {
+            "dpi": 300
+          },
+          {
+            "password": "abc"
+          }
+        ],
+        "right": true
+      },
+      {
+        "command": "keep only pages 1 to 3",
+        "expected": [
+          [
+            "organize"
+          ],
+          [
+            "split"
+          ]
+        ],
+        "got": [
+          "organize"
+        ],
+        "problems": [],
+        "params": [
+          {
+            "extract": "1-3"
+          }
+        ],
+        "right": true
+      },
+      {
+        "command": "turn this into a Word document",
+        "expected": [
+          [
+            "convert"
+          ]
+        ],
+        "got": [
+          "convert"
+        ],
+        "problems": [],
+        "params": [
+          {
+            "target": "docx"
+          }
+        ],
+        "right": true
+      },
+      {
+        "command": "rotate page 2 by 90 degrees",
+        "expected": [
+          [
+            "organize"
+          ]
+        ],
+        "got": [
+          "organize"
+        ],
+        "problems": [],
+        "params": [
+          {
+            "rotate": 90,
+            "rotate_pages": "2"
+          }
+        ],
+        "right": true
+      },
+      {
+        "command": "compress this and add the password hunter2",
+        "expected": [
+          [
+            "compress",
+            "protect"
+          ]
+        ],
+        "got": [
+          "compress",
+          "protect"
+        ],
+        "problems": [],
+        "params": [
+          {
+            "level": "medium"
+          },
+          {
+            "password": "hunter2"
+          }
+        ],
+        "right": true
+      },
+      {
+        "command": "what changed between these two versions?",
+        "expected": [
+          [
+            "compare"
+          ]
+        ],
+        "got": [
+          "compare"
+        ],
+        "problems": [],
+        "params": [
+          {}
+        ],
+        "right": true
+      },
+      {
+        "command": "book me a flight to Tokyo",
+        "expected": [
+          []
+        ],
+        "got": [],
+        "problems": [],
+        "params": [],
+        "right": true
+      },
+      {
+        "command": "order a pizza",
+        "expected": [
+          []
+        ],
+        "got": [],
+        "problems": [],
+        "params": [],
+        "right": true
+      }
+    ],
+    "cost": {
+      "calls": 11,
+      "avg_tokens_in": 2362.1,
+      "avg_tokens_out": 143.1,
+      "avg_seconds": 4.7
+    },
+    "model": "qwen3.6:35b"
+  }
+}
