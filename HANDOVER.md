@@ -1,6 +1,6 @@
 # Handover: Acrobat-style frontend rebuild (branch `b/acrobat-ui`)
 
-Last updated: 31 Oct 2026, 14:45 SGT (wrap-up snapshot; helpers told to stop). Submission deadline 16:15 SGT.
+Last updated: 31 Oct 2026, by Person C's session, continuing after Bryan's wrap-up at 14:45. Submission deadline 16:15 SGT.
 
 ## What this branch is
 A ground-up rebuild of the frontend so it works like Adobe Acrobat. Server code and the HTTP API are
@@ -36,19 +36,15 @@ Shared look: building-block classes in `frontend/src/styles.css`. Names, icons, 
 |---|---|
 | Combine, Compress, Split, Organize pages, Create a PDF, Protect, Remove a password, Export, Scan & OCR | DONE: each ran end to end through the new frame and was checked by screenshot. Office-to-PDF (in Create) needs LibreOffice installed; it shows the server's message without it. |
 | Redact, Prepare a web form, Edit & comment, Fill & Sign, Request e-signatures + Agreements page | DONE (14:44): each ran end to end through the new frame and was checked by screenshot. Redact: 14 found, leak test passed; audit of b_naive_redaction.pdf found 3 hidden texts. E-sign: link created, signed on /sign/<id>, shown Signed on /agreements. Web form: created, submitted on /f/<id>; flat PDF draw-a-field path works. |
-| Smart Autofill + profile page, autofill_memory, AI Assistant, Ask AI to do it, Generate, PDF Spaces, Compare | IN PROGRESS at snapshot; see the commit after this one for the helper's final status. |
+| Smart Autofill + profile page, autofill_memory, AI Assistant, Ask AI to do it, Generate, PDF Spaces, Compare | DONE: each clicked through in Edge with the real model (`gemma4:26b`), on a fresh browser with throwaway storage. |
 
 ## Known open issues
-1. **Opening a document by direct link to a file the browser has never seen sticks on "Opening…"** (seen 14:43 with
-   `/doc/<id>?tool=unlock` on a password-protected PDF in a fresh browser). The server answers the info request in 5 ms.
-   The browser logs "Can't perform a React state update on a component that hasn't mounted yet". Cause NOT yet found;
-   look at the info-fetch effect in `frontend/src/shell/DocumentView.tsx` (it should also add the fetched file to the
-   frame's file list so the tab shows its name instead of "Document"). Opening files from Home, Recent or a tool works.
-2. Password-protected PDFs: the centre view now hands them to the PDF preview so it can say "password-protected,
-   unlock it first"; untested because of issue 1.
-3. Whole-branch typecheck and build not yet run clean (helpers were mid-edit at the snapshot).
-4. Files uploaded straight to `POST /api/files` (not through the app) get tabs named "Document"; same root as issue 1.
-5. `SchemaForm`, `ResultPanel`, `PdfPreview` still use the old `.empty` class (unstyled message text).
+1. **Fixed: locked PDFs stuck on "Opening…".** The hang came from mounting the PDF viewer on a password-protected file. The server reports 0 pages for those, so the document view now shows a message and a "Remove the password" button instead. The viewer's own failure wasn't root-caused, just avoided.
+2. **Fixed: direct-link tabs said "Document".** Files fetched by direct link are now added to the frame's file list.
+3. **Fixed: typecheck and build.** Both pass with `main` merged in.
+4. **Fixed: `PdfPreview` used the old `.empty` class.** `SchemaForm` and `ResultPanel` don't use it.
+5. **Not checked on the Windows laptop: anything needing Tesseract.** OCR and Redact fail there because it isn't installed, along with 5 tests. Bryan checked them on his Mac before the wrap-up, but not since `main` was merged in.
+6. **Speed:** `gemma4:26b` averages about 35 seconds per form and 14 seconds per Q&A call. Rehearse with that in mind.
 
 ## Autofill memory (new, does not touch Person C's code)
 `app/tools/autofill_memory.py` reads C's `storage/autofill_cache.json` and keeps its own

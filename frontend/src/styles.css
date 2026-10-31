@@ -169,6 +169,11 @@ tr.click:hover td { background: var(--app); }
 .doc-tab.on { border-bottom-color: var(--ink); color: var(--ink); font-weight: 600; }
 .doc-tab .x { border: 0; background: none; color: var(--muted); font-size: 16px; line-height: 1; padding: 2px 4px; border-radius: 4px; }
 .doc-tab .x:hover { background: var(--app); color: var(--ink); }
+/* Many open tabs scroll inside the row. The logo and the buttons on the right keep their size. */
+.topbar > * { flex-shrink: 0; }
+.topbar > .tabs-row { flex: 0 1 auto; min-width: 0; scrollbar-width: none; }
+.topbar .logo, .topbar button, .topbar a { white-space: nowrap; }
+.doc-tab { flex-shrink: 0; }
 .grow { flex: 1; }
 .iconbtn { height: 32px; min-width: 32px; border: 0; background: none; border-radius: var(--r-md); display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 8px; color: var(--ink-2); text-decoration: none; }
 .iconbtn:hover { background: var(--app); }

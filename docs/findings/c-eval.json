@@ -2,10 +2,10 @@
   "autofill": {
     "totals": {
       "fields": 460,
-      "correct": 453,
+      "correct": 454,
       "must_fill": 35,
-      "must_fill_correct": 31,
-      "wrong_fills": 4
+      "must_fill_correct": 29,
+      "wrong_fills": 1
     },
     "forms": {
       "uscis_g1145.pdf": {
@@ -38,10 +38,10 @@
       },
       "irs_w9.pdf": {
         "fields": 23,
-        "correct": 22,
+        "correct": 23,
         "must_fill": 3,
         "must_fill_correct": 3,
-        "wrong_fills": 1
+        "wrong_fills": 0
       },
       "irs_8822.pdf": {
         "fields": 25,
@@ -59,17 +59,17 @@
       },
       "irs_2848.pdf": {
         "fields": 87,
-        "correct": 86,
+        "correct": 85,
         "must_fill": 3,
-        "must_fill_correct": 3,
-        "wrong_fills": 1
+        "must_fill_correct": 1,
+        "wrong_fills": 0
       },
       "irs_ss4.pdf": {
         "fields": 89,
-        "correct": 88,
+        "correct": 89,
         "must_fill": 0,
         "must_fill_correct": 0,
-        "wrong_fills": 1
+        "wrong_fills": 0
       }
     },
     "mistakes": [
@@ -77,21 +77,11 @@
         "form": "uscis_ar11.pdf",
         "field": "S1_DateOfBirth",
         "shown_as": "Enter your Date of Birth.",
-        "got": "date_of_birth_ddmmyyyy",
+        "got": "date_of_birth",
         "accepted": [
           "date_of_birth_mmddyyyy"
         ],
-        "confidence": 0.9
-      },
-      {
-        "form": "irs_w9.pdf",
-        "field": "f1_11",
-        "shown_as": "Social security",
-        "got": "nric",
-        "accepted": [
-          null
-        ],
-        "confidence": 0.7
+        "confidence": 1.0
       },
       {
         "form": "irs_8822.pdf",
@@ -102,7 +92,7 @@
           "address_line1",
           "full_address"
         ],
-        "confidence": 1.0
+        "confidence": 0.0
       },
       {
         "form": "irs_8822.pdf",
@@ -112,7 +102,7 @@
         "accepted": [
           "country"
         ],
-        "confidence": 1.0
+        "confidence": 0.0
       },
       {
         "form": "irs_8822.pdf",
@@ -122,36 +112,37 @@
         "accepted": [
           "postal_code"
         ],
-        "confidence": 1.0
+        "confidence": 0.0
       },
       {
         "form": "irs_2848.pdf",
-        "field": "TaxpayerIDSSN",
-        "shown_as": "Taxpayer identification",
-        "got": "nric",
+        "field": "TaxpayerName",
+        "shown_as": "Taxpayer name and address",
+        "got": null,
         "accepted": [
-          null
+          "full_name"
         ],
-        "confidence": 0.8
+        "confidence": 0.0
       },
       {
-        "form": "irs_ss4.pdf",
-        "field": "f1_2",
-        "shown_as": "Internal Revenue Service 1 Legal name of entity (or individual) for whom the EIN is being ",
-        "got": "full_name",
+        "form": "irs_2848.pdf",
+        "field": "TaxpayerAddress",
+        "shown_as": "Taxpayer name and address",
+        "got": null,
         "accepted": [
-          null
+          "full_address",
+          "address_line1"
         ],
-        "confidence": 0.9
+        "confidence": 0.0
       }
     ],
     "cost": {
       "calls": 9,
-      "avg_tokens_in": 2718.1,
-      "avg_tokens_out": 1605.6,
-      "avg_seconds": 20.5
+      "avg_tokens_in": 2758.9,
+      "avg_tokens_out": 2034.4,
+      "avg_seconds": 34.6
     },
-    "model": "qwen3.6:35b"
+    "model": "gemma4:26b"
   },
   "qa": {
     "answerable": [
@@ -161,11 +152,18 @@
         "right_page": true,
         "contains": true,
         "all_verified": true,
-        "answer": "You may claim exemption from withholding for 2026 if you meet both of the following conditions: you had no federal income tax liability in 2025 and you expect to have no federal income tax liability i",
+        "answer": "You may claim exemption from withholding for 2026 if you meet two conditions: you had no federal income tax liability in 2025 and you expect to have no federal income tax liability in 2026. You are co",
         "citations": [
           {
             "page": 2,
             "quote": "You may claim exemption from withholding for 2026 if you meet both of the following conditions: you had no federal income tax liability in 2025 and you expect to have no federal income tax liability in 2026.",
+            "page_exists": true,
+            "quote_found": true,
+            "verified": true
+          },
+          {
+            "page": 2,
+            "quote": "You had no federal income tax liability in 2025 if (1) your total tax on line 24 on your 2025 Form 1040 or 1040-SR is zero (or less than the sum of lines 27a, 28, 29, and 30), or (2) you were not required to file a return because your income was below the filing threshold for your correct filing status.",
             "page_exists": true,
             "quote_found": true,
             "verified": true
@@ -178,11 +176,11 @@
         "right_page": true,
         "contains": true,
         "all_verified": true,
-        "answer": "A nonresident alien should read Notice 1392, Supplemental Form W-4 Instructions for Nonresident Aliens, before completing this form.",
+        "answer": "If you are a nonresident alien, you should see Notice 1392, Supplemental Form W-4 Instructions for Nonresident Aliens, before completing the form [p.2].",
         "citations": [
           {
             "page": 2,
-            "quote": "Nonresident alien. If you’re a nonresident alien, see Notice 1392, Supplemental Form W-4 Instructions for Nonresident Aliens, before completing this form.",
+            "quote": "If you’re a nonresident alien, see Notice 1392, Supplemental Form W-4 Instructions for Nonresident Aliens, before completing this form.",
             "page_exists": true,
             "quote_found": true,
             "verified": true
@@ -195,7 +193,7 @@
         "right_page": true,
         "contains": true,
         "all_verified": true,
-        "answer": "Pub. 505, Tax Withholding and Estimated Tax",
+        "answer": "Pub. 505, Tax Withholding and Estimated Tax provides more information regarding withholding and when to furnish a new Form W-4 [p.2] \"For more information on withholding and when you must furnish a ne",
         "citations": [
           {
             "page": 2,
@@ -212,18 +210,18 @@
         "right_page": true,
         "contains": true,
         "all_verified": true,
-        "answer": "A foreign person should use the appropriate Form W-8 or Form 8233 instead of Form W-9. Additionally, if the foreign person is a qualified foreign pension fund under specific regulations or a partnersh",
+        "answer": "If you are a foreign person or the U.S. branch of a foreign bank that has elected to be treated as a U.S. person, you should use the appropriate Form W-8 or Form 8233 instead of Form W-9 [p.2]. Additi",
         "citations": [
           {
             "page": 2,
-            "quote": "If you are a foreign person or the U.S. branch of a foreign bank that has elected to be treated as a U.S. person... do not use Form W-9. Instead, use the appropriate Form W-8 or Form 8233",
+            "quote": "Instead, use the appropriate Form W-8 or Form 8233 (see Pub. 515).",
             "page_exists": true,
             "quote_found": true,
             "verified": true
           },
           {
             "page": 2,
-            "quote": "If you are a qualified foreign pension fund under Regulations section 1.897(l)-1(d), or a partnership that is wholly owned by qualified foreign pension funds, that is treated as a non-foreign person for purposes of section 1445 withholding, do not use Form W-9. Instead, use Form W-8EXP",
+            "quote": "Instead, use Form W-8EXP (or other certification of non-foreign status).",
             "page_exists": true,
             "quote_found": true,
             "verified": true
@@ -232,15 +230,22 @@
       },
       {
         "question": "What does FATCA stand for?",
-        "correct": true,
+        "correct": false,
         "right_page": true,
         "contains": true,
-        "all_verified": true,
+        "all_verified": false,
         "answer": "FATCA stands for the Foreign Account Tax Compliance Act.",
         "citations": [
           {
+            "page": 1,
+            "quote": "Exemption from Foreign Account Tax Compliance Act (FATCA) reporting",
+            "page_exists": true,
+            "quote_found": false,
+            "verified": false
+          },
+          {
             "page": 3,
-            "quote": "The Foreign Account Tax Compliance Act (FATCA) requires a participating foreign financial institution to report all U.S. account holders that are specified U.S. persons.",
+            "quote": "The Foreign Account Tax Compliance Act (FATCA) requires",
             "page_exists": true,
             "quote_found": true,
             "verified": true
@@ -253,7 +258,7 @@
         "right_page": true,
         "contains": true,
         "all_verified": true,
-        "answer": "You enter a business name or DBA name on line 2.",
+        "answer": "You should enter a business name, trade name, DBA name, or disregarded entity name on line 2 [p.1, p.3].",
         "citations": [
           {
             "page": 1,
@@ -264,7 +269,7 @@
           },
           {
             "page": 3,
-            "quote": "Line 2 If you have a business name, trade name, DBA name, or disregarded entity name, enter it on line 2.",
+            "quote": "If you have a business name, trade name, DBA name, or disregarded entity name, enter it on line 2.",
             "page_exists": true,
             "quote_found": true,
             "verified": true
@@ -299,15 +304,15 @@
         "answer": "The document doesn't say."
       }
     ],
-    "correct_citations": "6/6",
+    "correct_citations": "5/6",
     "correct_refusals": "5/5",
     "cost": {
-      "calls": 14,
-      "avg_tokens_in": 10041.4,
-      "avg_tokens_out": 72.4,
-      "avg_seconds": 1.9
+      "calls": 12,
+      "avg_tokens_in": 10157.3,
+      "avg_tokens_out": 602.6,
+      "avg_seconds": 14.2
     },
-    "model": "qwen3.6:35b"
+    "model": "gemma4:26b"
   },
   "command": {
     "right_plans": "11/11",
@@ -327,9 +332,7 @@
         "problems": [],
         "params": [
           {},
-          {
-            "level": "medium"
-          }
+          {}
         ],
         "right": true
       },
@@ -386,9 +389,7 @@
         ],
         "problems": [],
         "params": [
-          {
-            "dpi": 300
-          },
+          {},
           {
             "password": "abc"
           }
@@ -467,9 +468,7 @@
         ],
         "problems": [],
         "params": [
-          {
-            "level": "medium"
-          },
+          {},
           {
             "password": "hunter2"
           }
@@ -514,11 +513,11 @@
       }
     ],
     "cost": {
-      "calls": 11,
-      "avg_tokens_in": 2362.1,
-      "avg_tokens_out": 143.1,
-      "avg_seconds": 4.7
+      "calls": 13,
+      "avg_tokens_in": 2413.5,
+      "avg_tokens_out": 268.5,
+      "avg_seconds": 5.9
     },
-    "model": "qwen3.6:35b"
+    "model": "gemma4:26b"
   }
 }

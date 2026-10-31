@@ -332,7 +332,7 @@ function Pane({ file, api, onResult }: ToolPaneProps) {
               {flaggedCount > 0 ? ` Check the highlighted ${flaggedCount === 1 ? "one" : "ones"}.` : " Check them before filling."}
             </h4>
           )}
-          <p className="hint">Measured on 9 public forms: 31 of 35 required fields right, and 4 wrong fills out of 460 fields. Always check before you submit.</p>
+          <p className="hint">Measured on 9 public forms: 29 of 35 required fields right, and 1 wrong fill out of 460 fields. Always check before you submit.</p>
           <div className="autofill-rows">
             {rows.map((r) => {
               const key = mapping[r.field] ?? "";
