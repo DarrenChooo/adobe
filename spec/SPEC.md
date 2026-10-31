@@ -65,11 +65,15 @@ Each workstream collects one or two concrete findings about how Acrobat or PDFs 
 - **B:** why a black box drawn over text is not redaction (the text is still in the file and can be copied out), and how OCR adds an invisible text layer to a scan.
 - **C:** how a form's hidden field names map to human meanings, which is what lets one profile fill forms it has never seen.
 
-## 5. Architecture **[DECIDE: stack]**
+## 5. Architecture (stack DECIDED 31 Oct: Python FastAPI + React)
 
-**Proposed:** a Python FastAPI server plus a plain HTML/JavaScript front end with no build step, all running locally.
-- **Why:** it's the fastest setup for three people working in parallel, and no front-end build tooling means fewer things break.
-- **Alternatives:** React/Vite (nicer UI, more setup); doing everything in the browser (most private, but no good way to encrypt or OCR well).
+**Stack:** a Python FastAPI server that does all the PDF work, plus a React front end built with Vite, all running locally.
+- **Front-end language:** TypeScript by default. **[DECIDE]** switch to plain JavaScript if the team prefers.
+- **During development:** two processes run side by side:
+  - `uvicorn app.main:app --reload` for the server on port 8000
+  - `npm run dev` inside `frontend/` for the page on port 5173, which forwards `/api` and `/files` calls to port 8000 through Vite's proxy setting
+- **For the demo:** `npm run build`, then FastAPI serves `frontend/dist/`, so it's one process and one address.
+- **Why Python for the server:** its PDF libraries cover passwords, OCR and tables, which JavaScript's don't do well.
 
 How information flows:
 1. The user uploads a PDF in the browser. The server stores it and returns a **file id**.
@@ -79,7 +83,7 @@ How information flows:
 5. AI tools (Person C) follow the same route. The command bar asks the language model *which* tool to run with *which* options, then calls the real tool. The model never edits the PDF itself.
 
 ```
-browser (web/)  --upload-->  POST /api/files            -> file_id
+React (frontend/) --upload-->    POST /api/files            -> file_id
                 --run tool-> POST /api/tools/{tool_id}  -> outputs [file_id...] + data
                 --download-> GET  /api/files/{file_id}
 AI command bar  -> LLM picks tool + params -> same POST /api/tools/{tool_id}
@@ -89,16 +93,20 @@ AI command bar  -> LLM picks tool + params -> same POST /api/tools/{tool_id}
 
 **Repo layout**
 ```
-app/main.py                 A  FastAPI app; auto-discovers tools; serves web/
-app/core/storage.py         A  save/load files by id (folder: storage/, git-ignored)
-app/core/tooling.py         A  ToolSpec, registry, run wrapper
-app/core/pdf_utils.py       A  shared helpers (open, render page to image, text with positions)
-app/tools/<tool_id>.py      owner  one file per tool
-web/index.html              A  shell: upload, file list, tool picker, preview
-web/js/api.js               A  fetch helpers
-web/js/registry.js          A  registerTool()
-web/tools/<tool_id>.js      owner  one UI file per tool
-tests/test_<tool_id>.py     owner
+app/main.py                       A  FastAPI app; auto-discovers tools; serves frontend/dist/ in demo mode
+app/core/storage.py               A  save/load files by id (folder: storage/, git-ignored)
+app/core/tooling.py               A  ToolSpec, registry, run wrapper
+app/core/pdf_utils.py             A  shared helpers (open, render page to image, text with positions)
+app/core/llm.py                   C  the one place that talks to the language model
+app/tools/<tool_id>.py            owner  one file per tool (server side)
+frontend/package.json             A  shared: append dependencies only
+frontend/vite.config.ts           A  dev proxy /api and /files -> :8000
+frontend/src/App.tsx              A  shell: upload, file list, tool picker, preview, router
+frontend/src/api.ts               A  typed fetch helpers (upload, runTool, listTools, fileUrl)
+frontend/src/components/          A  shared UI: FileDropzone, PdfPreview (react-pdf), ResultPanel
+frontend/src/tools/registry.ts    A  auto-collects every tool file (no edits needed when you add one)
+frontend/src/tools/<tool_id>.tsx  owner  one UI file per tool
+tests/test_<tool_id>.py           owner
 samples/                    all   small test PDFs (no real personal data)
 docs/findings/              all   "what we uncovered" notes and screenshots
 ```
@@ -123,16 +131,24 @@ TOOL = ToolSpec(
 - `GET /api/tools` -> list of every ToolSpec minus `run` (powers the tool picker, the AI router and the coverage page)
 - `POST /api/tools/{tool_id}` body `{"file_ids": [...], "params": {...}}` -> `{ok, message, outputs: [{file_id, filename, mime}], data}`
 
-**Front-end tool interface.** Each `web/tools/<tool_id>.js` calls:
-```js
-registerTool({ id: "merge", render(container, api) { /* build the options UI, call api.run("merge", fileIds, params) */ } });
+**Front-end tool interface.** Each `frontend/src/tools/<tool_id>.tsx` default-exports one object:
+```tsx
+import type { ToolUI } from "./registry";
+const tool: ToolUI = {
+  id: "merge",                                   // must match the server tool id
+  Panel: ({ selectedFileIds, api, onResult }) => { /* options form; await api.runTool("merge", selectedFileIds, params); onResult(res) */ },
+  routes: [],                                    // optional extra pages, e.g. { path: "/sign/:id", element: <SignPage/> }
+};
+export default tool;
 ```
+`registry.ts` collects them with `import.meta.glob("./*.tsx", { eager: true })`, so nobody edits a shared list. `App.tsx` adds every tool's `routes` to the router automatically.
 
 ### 5.2 Rules for every agent
 - **Licences: permissive only** (MIT, BSD, Apache-2.0, MPL-2.0). **Banned:** PyMuPDF/fitz (AGPL), pdf2docx (depends on PyMuPDF), Ghostscript (AGPL), iText (AGPL), poppler and anything needing it, such as pdf2image (GPL).
-- **Suggested libraries:** pypdf (BSD: pages, forms, encryption), pypdfium2 (Apache/BSD: render pages, text with positions), pdfplumber (MIT: text and tables), reportlab (BSD: draw onto and create PDFs), Pillow (HPND: images), pytesseract + Tesseract (Apache: OCR), python-docx, openpyxl, python-pptx (MIT).
+- **Front-end libraries:** React, Vite, react-router, react-pdf (all MIT). Keep styling simple (plain CSS or one small library the team agrees on); don't add a heavy design system mid-day.
+- **Suggested server libraries:** pypdf (BSD: pages, forms, encryption), pypdfium2 (Apache/BSD: render pages, text with positions), pdfplumber (MIT: text and tables), reportlab (BSD: draw onto and create PDFs), Pillow (HPND: images), pytesseract + Tesseract (Apache: OCR), python-docx, openpyxl, python-pptx (MIT).
 - **Privacy:** files never leave the machine except for text a Person C tool sends to the model, and that is the minimum needed. Never send profile *values* to the model.
-- **Stay in your lane:** only edit files you own (see your brief). Shared files are `requirements.txt` (append only) and `samples/`. Ask before touching anything else.
+- **Stay in your lane:** only edit files you own (see your brief). Shared files are `requirements.txt` and `frontend/package.json` (append dependencies only) and `samples/`. Ask before touching anything else.
 - **No real personal data** in `samples/` or tests. Use made-up names and NRICs that fit the format.
 - Every tool ships with one sample input in `samples/` and one test that runs it.
 - Commit small, pull often. Branch per person (`a/...`, `b/...`, `c/...`), merge to `main` at every checkpoint.
@@ -141,7 +157,7 @@ registerTool({ id: "merge", render(container, api) { /* build the options UI, ca
 
 | When | Everyone |
 |---|---|
-| H0:00-H0:45 | A: scaffold, contract, a dummy `echo` tool working end to end, pushed to `main`. B and C: install libraries, collect sample PDFs, write their first tool against the contract with a stub until A pushes |
+| H0:00-H0:45 | A: server scaffold + React app scaffold, contract, a dummy `echo` tool working end to end in the browser, pushed to `main`. B and C: install Python and Node dependencies, collect sample PDFs, write their first server tool as a plain function and test it from the command line until A pushes |
 | H0:45 | **Checkpoint 1:** everyone pulls `main` and runs the echo tool |
 | H3:00 | **Checkpoint 2:** every P0 tool runs from the command line; merge |
 | H5:00 | **Checkpoint 3 / go-no-go:** every P0 tool works in the browser. Anything not working is cut or moved to P2 |
@@ -160,7 +176,7 @@ A **coverage page** (`/coverage`, built by A from `GET /api/tools`) shows sectio
 
 ## 8. Open decisions (team, before H0:30)
 
-1. **[DECIDE] Stack:** FastAPI + plain HTML/JS (proposed) or something else.
+1. ~~Stack~~ **DECIDED 31 Oct: Python FastAPI + React (Vite).** Still open: TypeScript (default) or plain JavaScript.
 2. **[DECIDE] AI provider and whose API key** pays. Proposed: one cheap, fast model for routing and mapping, with an option to use a local model.
 3. **[DECIDE] Project name** (avoid "Adobe" and "Acrobat" in the name, which are trademarks).
 4. **[DECIDE] Licence:** MIT proposed. Add `LICENSE` to the repo in hour one.

@@ -8,18 +8,24 @@ Build the app everyone else plugs into, then the Standard-tier tools Adobe charg
 
 ## Hour one: unblock the team (P0, do this before anything else)
 Others are waiting on you. Push to `main` by **H0:45**:
-1. `app/main.py`: FastAPI app that serves `web/`, auto-imports every `app/tools/*.py` that defines `TOOL`, and exposes the four endpoints in SPEC 5.1.
+1. `app/main.py`: FastAPI app that auto-imports every `app/tools/*.py` that defines `TOOL`, exposes the four endpoints in SPEC 5.1, allows the Vite dev server (CORS for `localhost:5173`), and serves `frontend/dist/` when it exists.
 2. `app/core/storage.py`: save uploads and outputs under `storage/<file_id>/` (git-ignore `storage/`); look up by id.
 3. `app/core/tooling.py`: `ToolSpec`, `ToolResult`, registry, a run wrapper that catches errors and returns `{ok: false, message}`.
 4. `app/core/pdf_utils.py`: `open_pdf`, `page_count`, `render_page_png(path, page, dpi)` (pypdfium2), `text_with_boxes(path, page)` (pypdfium2 or pdfplumber). B and C rely on these.
-5. `web/index.html` + `web/js/api.js` + `web/js/registry.js`: upload, file list, tool picker built from `GET /api/tools`, options panel, result panel with download, PDF preview (pdf.js from a CDN is fine).
-6. `app/tools/echo.py` + `web/tools/echo.js`: returns the input unchanged. Proves the pipeline.
-7. `requirements.txt`, `README.md` (how to run), `.gitignore`, `LICENSE` (team's chosen licence), `samples/` with 2-3 small made-up PDFs, one of them with form fields.
-8. One command to run: `uvicorn app.main:app --reload`.
+5. React app in `frontend/` (Vite, TypeScript by default, react-router, react-pdf):
+   - `vite.config.ts` proxies `/api` and `/files` to port 8000.
+   - `src/api.ts` has typed helpers: `upload`, `listTools`, `runTool`, `fileUrl`.
+   - `src/tools/registry.ts` collects tool files with `import.meta.glob`, exactly as in SPEC 5.1.
+   - `src/App.tsx` is the shell: drag-and-drop upload, file list with select boxes, a tool picker built from `GET /api/tools` merged with the registry, the chosen tool's `Panel`, a result panel with download, a PDF preview, and every tool's `routes` added to the router.
+6. `app/tools/echo.py` + `frontend/src/tools/echo.tsx`: returns the input unchanged. Proves the pipeline end to end.
+7. `requirements.txt`, `frontend/package.json`, `README.md` (how to install and run both halves), `.gitignore` (`storage/`, `node_modules/`, `frontend/dist/`, `.env`), `LICENSE` (team's chosen licence), `samples/` with 2-3 small made-up PDFs, one of them with form fields.
+8. Run commands in the README:
+   - **Dev:** `uvicorn app.main:app --reload` and, in `frontend/`, `npm install && npm run dev`.
+   - **Demo:** `npm run build`, then just uvicorn.
 
-**Acceptance:** a teammate can clone, install, run, upload a PDF, run `echo`, and download the result.
+**Acceptance:** a teammate can clone, install, run both halves, upload a PDF in the React page, run `echo`, and download the result. Adding a new `frontend/src/tools/x.tsx` makes it appear with no other edits.
 
-## Your tools (each = `app/tools/<id>.py` + `web/tools/<id>.js` + `tests/test_<id>.py`)
+## Your tools (each = `app/tools/<id>.py` + `frontend/src/tools/<id>.tsx` + `tests/test_<id>.py`)
 
 | Tool id | SPEC row | Pri | What it does | Done when |
 |---|---|---|---|---|
@@ -34,7 +40,7 @@ Others are waiting on you. Push to `main` by **H0:45**:
 | `compress` | 19 | P1 | Recompress streams, downsample images (Pillow) | Report shows size before and after; output opens |
 | coverage page | 7 | P0 | `/coverage` lists every tool from `GET /api/tools` grouped by Adobe tier, with a works/not-yet badge | Opening shot of the demo |
 
-Storage for `esign`: SQLite in `storage/esign.db` is enough. No email sending: show the link to copy.
+Storage for `esign`: SQLite in `storage/esign.db` is enough. No email sending: show the link to copy. The signer's page is a route your `esign.tsx` exports (e.g. `/sign/:requestId`). The coverage page is a route in `App.tsx`.
 
 ## What you uncover (SPEC section 4)
 Write `docs/findings/a-pdf-internals.md` with screenshots:
@@ -45,4 +51,4 @@ Write `docs/findings/a-pdf-internals.md` with screenshots:
 Time for merge, split and protect on a sample; compression before/after sizes. Put them in `docs/findings/a-numbers.md`.
 
 ## Do not touch
-Other people's `app/tools/*` and `web/tools/*` files. After H0:45, change the contract (API shape, ToolSpec fields) **only with the whole team's agreement**, because B and C build against it.
+Other people's `app/tools/*` and `frontend/src/tools/*` files. After H0:45, change the contract (API shape, ToolSpec fields) **only with the whole team's agreement**, because B and C build against it.

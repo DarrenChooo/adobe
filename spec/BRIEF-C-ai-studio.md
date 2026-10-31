@@ -11,7 +11,7 @@ Build what Adobe charges the most for (Studio, US$24.99/mo, or the AI Assistant 
 - Write `app/core/llm.py` (you own this one file under `core/`): `complete(system, user, json_schema=None) -> dict|str`, one place to switch provider or point at a local model. Log tokens used per call, because you need cost per operation.
 - Collect 5-10 **blank** public PDF forms with real fillable fields (e.g. government or airline forms anyone can download). Check each has fields (pypdf `get_fields()`); drop the ones that don't. Make a made-up profile JSON.
 
-## Your tools (each = `app/tools/<id>.py` + `web/tools/<id>.js` + `tests/test_<id>.py`)
+## Your tools (each = `app/tools/<id>.py` + `frontend/src/tools/<id>.tsx` + `tests/test_<id>.py`)
 
 | Tool id | SPEC row | Pri | What it does | Done when |
 |---|---|---|---|---|
@@ -38,4 +38,4 @@ Put these in `docs/findings/c-numbers.md`:
 - **Cost per operation:** tokens used times the model's published price per token (cite the pricing page).
 
 ## Do not touch
-Anything under `app/core/` except `llm.py`, and anything under `web/js/` (A owns those). Other people's tool files.
+Anything under `app/core/` except `llm.py`, and anything in `frontend/src/` outside `frontend/src/tools/<your tool ids>.tsx` (A owns those). The profile page is a route your `autofill.tsx` exports (e.g. `/profile`). Other people's tool files.
