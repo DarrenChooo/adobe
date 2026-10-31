@@ -1,0 +1,36 @@
+/* Person B's screens. Every class starts with "pro-" so nothing clashes with the app shell. */
+.pro-panel { display: flex; flex-direction: column; gap: 14px; font-size: 14px; }
+.pro-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.pro-help { color: var(--muted, #5b6474); margin: 0; }
+.pro-btn { font: inherit; font-weight: 600; padding: 8px 14px; border-radius: 7px; border: 1px solid transparent;
+  background: var(--accent, #2343c4); color: #fff; cursor: pointer; }
+.pro-btn:disabled { opacity: .5; cursor: not-allowed; }
+.pro-btn.ghost { background: transparent; color: inherit; border-color: var(--line, #dde2ea); }
+.pro-btn.danger { background: #a12b2b; }
+.pro-msg { padding: 10px 12px; border-radius: 8px; background: var(--panel-2, #f1f3f7); }
+.pro-msg.err { background: #f8dede; color: #7a1f1f; }
+.pro-msg.good { background: #dcf2e6; color: #135f3a; }
+.pro-msg.bad { background: #f8dede; color: #7a1f1f; font-weight: 600; }
+.pro-chip { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+  background: var(--panel-2, #eef1f6); }
+.pro-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.pro-list li { display: flex; gap: 8px; align-items: center; }
+.pro-mono { font-family: ui-monospace, Menlo, monospace; font-size: 13px; }
+.pro-pages { display: flex; flex-direction: column; gap: 12px; max-height: 70vh; overflow: auto; }
+.pro-page { position: relative; border: 1px solid var(--line, #dde2ea); align-self: flex-start; max-width: 100%;
+  touch-action: none; user-select: none; }
+.pro-page img { display: block; max-width: 100%; height: auto; pointer-events: none; }
+.pro-box { position: absolute; border: 2px solid #d12a2a; background: rgba(209, 42, 42, .18); box-sizing: border-box; }
+.pro-box.muted { border-color: #8a93a3; background: rgba(138, 147, 163, .15); border-style: dashed; }
+.pro-box.draft { border-style: dashed; }
+.pro-box span { position: absolute; top: -18px; left: 0; font-size: 11px; background: #d12a2a; color: #fff;
+  padding: 0 4px; white-space: nowrap; }
+.pro-diff { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+.pro-diff .before { background: #fde8e8; padding: 4px 8px; border-radius: 4px; text-decoration: line-through; }
+.pro-diff .after { background: #e1f5e9; padding: 4px 8px; border-radius: 4px; }
+.pro-form { display: flex; flex-direction: column; gap: 12px; max-width: 520px; }
+.pro-form label { display: flex; flex-direction: column; gap: 4px; font-weight: 600; }
+.pro-form input[type="text"], .pro-form select { font: inherit; padding: 8px 10px; border-radius: 7px;
+  border: 1px solid var(--line, #dde2ea); }
+.pro-form .check { flex-direction: row; align-items: center; gap: 8px; font-weight: 500; }
+.pro-public { max-width: 640px; margin: 40px auto; padding: 0 16px; font-family: system-ui, sans-serif; }
