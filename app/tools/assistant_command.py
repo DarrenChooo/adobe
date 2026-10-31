@@ -12,7 +12,7 @@ from app.core import llm, storage
 from app.core.tooling import REGISTRY, Output, RunContext, ToolError, ToolResult, ToolSpec
 
 # These need a person at the screen (review, signing, drawing), or are the bar itself.
-NOT_PLANNABLE = {"assistant_command", "echo", "autofill", "esign", "webform", "fill_sign", "annotate", "spaces"}
+NOT_PLANNABLE = {"assistant_command", "echo", "autofill", "esign", "webform", "fill_sign", "annotate", "spaces", "autofill_memory"}
 
 PLAN_SCHEMA = {
     "type": "object",
@@ -95,7 +95,7 @@ def run_plan(steps: list[dict], tools: list[dict], file_ids: list[str], call_too
                     "results": results, "file_ids": current}
         outputs = [o["file_id"] for o in result.get("outputs", [])]
         current = outputs or current  # tools that only report data pass their inputs along
-    return {"ok": True, "message": f"Ran {len(steps)} steps.", "results": results, "file_ids": current}
+    return {"ok": True, "message": f"Ran {len(steps)} step{'' if len(steps) == 1 else 's'}.", "results": results, "file_ids": current}
 
 
 def _real_tools() -> list[dict]:

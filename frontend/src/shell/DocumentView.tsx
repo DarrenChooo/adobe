@@ -56,10 +56,10 @@ export default function DocumentView() {
   const { fileId = "" } = useParams();
   const [search] = useSearchParams();
   const navigate = useNavigate();
-  const { files, ctx, tools, ensureTab } = useFrame();
+  const { files, ctx, tools, ensureTab, addFiles } = useFrame();
   const toolId = search.get("tool");
   const ai = search.get("ai") === "1";
-  const [info, setInfo] = useState<FileInfo | null>(() => files.find((f) => f.file_id === fileId) ?? null);
+  const info = files.find((f) => f.file_id === fileId) ?? null;
   const [missing, setMissing] = useState(false);
   const [stageEl, setStageEl] = useState<HTMLElement | null>(null);
   const [claims, setClaims] = useState(0);
@@ -69,13 +69,10 @@ export default function DocumentView() {
   useEffect(() => ensureTab(fileId), [fileId, ensureTab]);
 
   useEffect(() => {
-    const known = files.find((f) => f.file_id === fileId);
-    if (known) {
-      setInfo(known);
-      return;
-    }
     setMissing(false);
-    api.fileInfo(fileId).then(setInfo).catch(() => setMissing(true));
+    if (info) return;
+    // A direct link to a file this browser hasn't seen: fetch it and add it, so the tab gets its name.
+    api.fileInfo(fileId).then((fetched) => addFiles([fetched])).catch(() => setMissing(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fileId]);
 
@@ -121,8 +118,18 @@ export default function DocumentView() {
           )}
           <div className="stage-inner">
             <div ref={setStageEl} style={{ display: claims > 0 ? "contents" : "none" }} />
-            {claims === 0 && (info.pages > 0 || /\.pdf$/i.test(info.filename) ? (
+            {claims === 0 && (info.pages > 0 ? (
               <PdfPreview fileId={fileId} width={Math.round(BASE_WIDTH * zoom)} />
+            ) : /\.pdf$/i.test(info.filename) ? (
+              // The server can't read its pages: locked or damaged. Opening one in the viewer hangs the page.
+              <div className="empty-state">
+                This PDF can't be shown because it's password-protected or damaged.
+                {toolId !== "unlock" && (
+                  <div style={{ marginTop: 12 }}>
+                    <button className="btn primary" onClick={() => navigate(docPath(fileId, "unlock", ai))}>Remove the password</button>
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="empty-state">
                 This file isn't a PDF, so it can't be shown here. <a href={fileUrl(fileId, true)} download={info.filename}>Download it</a>

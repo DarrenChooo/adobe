@@ -39,6 +39,7 @@ interface Frame {
   files: FileInfo[];
   tabs: string[];
   ensureTab: (fileId: string) => void;
+  addFiles: (infos: FileInfo[]) => void;
   closeTab: (fileId: string) => void;
   clearFiles: () => void;
   toast: Toast | null;
@@ -151,7 +152,7 @@ export function FrameProvider({ children }: { children: ReactNode }) {
   const ctx: ToolContext = useMemo(() => ({ api, files, upload, onResult, openFile }), [files, upload, onResult, openFile]);
 
   const frame: Frame = {
-    tools, serverDown, files, tabs, ensureTab: addTab, closeTab, clearFiles, toast, dismissToast: () => setToast(null),
+    tools, serverDown, files, tabs, ensureTab: addTab, addFiles, closeTab, clearFiles, toast, dismissToast: () => setToast(null),
     menuOpen, setMenuOpen, ctx,
   };
   return (
