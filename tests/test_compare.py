@@ -1,4 +1,4 @@
-from b_fixtures import samples  # noqa: F401
+from tests.b_fixtures import samples  # noqa: F401
 
 from app.pro import compare
 

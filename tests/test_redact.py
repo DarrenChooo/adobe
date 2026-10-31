@@ -1,4 +1,4 @@
-from b_fixtures import samples  # noqa: F401  (pytest fixture)
+from tests.b_fixtures import samples  # noqa: F401  (pytest fixture)
 
 from app.pro import redact
 from app.pro.pdfio import all_text

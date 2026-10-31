@@ -16,6 +16,7 @@ from __future__ import annotations
 import csv
 import json
 import os
+import re
 import shutil
 import sqlite3
 import time
@@ -159,10 +160,12 @@ def run(inputs: list[Path], params: dict, out_dir: Path) -> dict:
         _db(d).close()
         return ok(f"Web form ready with {len(fields)} question(s).", [], {**schema, "share_path": f"/f/{form_id}"})
 
-    form_id = params.get("form_id", "")
+    form_id = str(params.get("form_id", ""))
+    if mode in ("schema", "submit", "responses"):
+        # form_id comes from a public link: only accept our own 8-hex-digit ids, never a path.
+        if not re.fullmatch(r"[0-9a-f]{8}", form_id) or not (_root(params) / form_id / "schema.json").exists():
+            return fail("That form doesn't exist. Check the link.")
     d = _root(params) / form_id
-    if mode in ("schema", "submit", "responses") and not (form_id and (d / "schema.json").exists()):
-        return fail("That form doesn't exist. Check the link.")
 
     if mode == "schema":
         return ok("Form loaded.", [], json.loads((d / "schema.json").read_text()))

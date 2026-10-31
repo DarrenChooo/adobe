@@ -100,13 +100,13 @@ def make(out: Path) -> dict:
     paths = {}
 
     p = out / "b_pii_letter.pdf"
-    c = canvas.Canvas(str(p), pagesize=A4)
+    c = canvas.Canvas(str(p), pagesize=A4, invariant=1)
     _page(c, LETTER_P1); c.showPage()
     _page(c, LETTER_P2); c.showPage(); c.save()
     paths["letter"] = p
 
     p = out / "b_naive_redaction.pdf"
-    c = canvas.Canvas(str(p), pagesize=A4)
+    c = canvas.Canvas(str(p), pagesize=A4, invariant=1)
     placed = _page(c, LETTER_P1)
     for needle in ("S1234567D", "+65 9123 4567", "T0123456Z"):
         _cover(c, placed, needle)
@@ -115,12 +115,12 @@ def make(out: Path) -> dict:
 
     for name, lines in (("b_contract_v1.pdf", CONTRACT_V1), ("b_contract_v2.pdf", CONTRACT_V2)):
         p = out / name
-        c = canvas.Canvas(str(p), pagesize=A4)
+        c = canvas.Canvas(str(p), pagesize=A4, invariant=1)
         _page(c, lines); c.showPage(); c.save()
         paths[name[:-4]] = p
 
     p = out / "b_table.pdf"
-    c = canvas.Canvas(str(p), pagesize=A4)
+    c = canvas.Canvas(str(p), pagesize=A4, invariant=1)
     c.setFont(FONT, SIZE)
     rows = [["Item", "Qty", "Unit price", "Total"], ["Pens", "10", "1.50", "15.00"], ["Paper", "5", "6.00", "30.00"],
             ["Folders", "8", "2.25", "18.00"], ["Grand total", "", "", "63.00"]]
@@ -138,7 +138,7 @@ def make(out: Path) -> dict:
     # A fillable form (real AcroForm fields) and the same form flat (no fields).
     for name, fillable in (("b_form_fillable.pdf", True), ("b_form_flat.pdf", False)):
         p = out / name
-        c = canvas.Canvas(str(p), pagesize=A4)
+        c = canvas.Canvas(str(p), pagesize=A4, invariant=1)
         c.setFont(FONT, SIZE)
         c.drawString(72, H - 72, "Event Pass Registration (sample, made up)")
         rows = [("Full name", "full_name"), ("NRIC", "nric"), ("Email", "email")]

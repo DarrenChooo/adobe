@@ -1,11 +1,10 @@
 import { useState } from "react";
-import type { ToolUI } from "./registry";
-import type { ApiLike, RunResult } from "./pro/types";
+import type { ToolPanelProps, ToolUI } from "./registry";
 import "./pro/pro.css";
 
 type Change = { type: string; page_a: number | null; page_b: number | null; before: string[]; after: string[] };
 
-function ComparePanel({ selectedFileIds, api, onResult }: { selectedFileIds: string[]; api: ApiLike; onResult: (r: RunResult) => void }) {
+function ComparePanel({ selectedFileIds, api, onResult }: ToolPanelProps) {
   const [swapped, setSwapped] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: string; text: string } | null>(null);

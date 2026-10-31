@@ -1,6 +1,6 @@
 import csv
 
-from b_fixtures import samples  # noqa: F401
+from tests.b_fixtures import samples  # noqa: F401
 
 from pypdf import PdfReader
 
@@ -65,3 +65,9 @@ def test_add_fields_to_flat_pdf(samples):
     assert names == {"full_name": "text", "agree": "checkbox"}
     text = PdfReader(res["outputs"][0]["path"]).pages[0].extract_text()
     assert "Event Pass Registration" in text  # original page content kept underneath
+
+
+def test_form_id_cannot_escape_the_forms_folder(samples):
+    for bad in ["../../etc", "..", "abc/../../x", "ZZZZZZZZ", ""]:
+        res = webform.run([], _params(samples, mode="schema", form_id=bad), samples["out"])
+        assert not res["ok"], bad

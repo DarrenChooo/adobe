@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
-import type { ToolUI } from "./registry";
+import type { ToolPanelProps, ToolUI } from "./registry";
 import PageBoxes from "./pro/PageBoxes";
 import PublicForm from "./pro/PublicForm";
 import { usePageImages } from "./pro/usePageImages";
-import type { ApiLike, Box, RunResult } from "./pro/types";
+import type { Box } from "./pro/types";
 import "./pro/pro.css";
 
 type Field = { name: string; label: string; type: string; options: string[] };
 type NewBox = Box & { name: string; kind: "text" | "checkbox" };
 
-function WebformPanel({ selectedFileIds, api, onResult }: { selectedFileIds: string[]; api: ApiLike; onResult: (r: RunResult) => void }) {
+function WebformPanel({ selectedFileIds, api, onResult }: ToolPanelProps) {
   const [fileId, setFileId] = useState<string | undefined>(selectedFileIds[0]);
   const [fields, setFields] = useState<Field[] | null>(null);
   const [title, setTitle] = useState("");

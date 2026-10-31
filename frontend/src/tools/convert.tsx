@@ -1,6 +1,5 @@
 import { useState } from "react";
-import type { ToolUI } from "./registry";
-import type { ApiLike, RunResult } from "./pro/types";
+import type { ToolPanelProps, ToolUI } from "./registry";
 import "./pro/pro.css";
 
 const TARGETS = [
@@ -12,7 +11,7 @@ const TARGETS = [
   { id: "office", label: "Word/Excel/PowerPoint to PDF", needs: "one Office file (needs LibreOffice)" },
 ];
 
-function ConvertPanel({ selectedFileIds, api, onResult }: { selectedFileIds: string[]; api: ApiLike; onResult: (r: RunResult) => void }) {
+function ConvertPanel({ selectedFileIds, api, onResult }: ToolPanelProps) {
   const [target, setTarget] = useState("docx");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: string; text: string } | null>(null);

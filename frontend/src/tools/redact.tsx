@@ -1,14 +1,14 @@
 import { useState } from "react";
-import type { ToolUI } from "./registry";
+import type { ToolPanelProps, ToolUI } from "./registry";
 import PageBoxes from "./pro/PageBoxes";
 import { usePageImages } from "./pro/usePageImages";
-import type { ApiLike, Box, RunResult } from "./pro/types";
+import type { Box } from "./pro/types";
 import "./pro/pro.css";
 
 type Hit = Box & { type: string; text: string };
 type Hidden = { page: number; hidden_text: string };
 
-function RedactPanel({ selectedFileIds, api, onResult }: { selectedFileIds: string[]; api: ApiLike; onResult: (r: RunResult) => void }) {
+function RedactPanel({ selectedFileIds, api, onResult }: ToolPanelProps) {
   const fileId = selectedFileIds[0];
   const { pages, error: pageError } = usePageImages(api, fileId);
   const [hits, setHits] = useState<Hit[] | null>(null);

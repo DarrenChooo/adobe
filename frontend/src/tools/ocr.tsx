@@ -1,9 +1,8 @@
 import { useState } from "react";
-import type { ToolUI } from "./registry";
-import type { ApiLike, RunResult } from "./pro/types";
+import type { ToolPanelProps, ToolUI } from "./registry";
 import "./pro/pro.css";
 
-function OcrPanel({ selectedFileIds, api, onResult }: { selectedFileIds: string[]; api: ApiLike; onResult: (r: RunResult) => void }) {
+function OcrPanel({ selectedFileIds, api, onResult }: ToolPanelProps) {
   const [dpi, setDpi] = useState(300);
   const [force, setForce] = useState(false);
   const [busy, setBusy] = useState(false);

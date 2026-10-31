@@ -1,17 +1,8 @@
-// Shapes from SPEC 5.1, used by Person B's screens.
-export type OutputFile = { file_id: string; filename: string; mime: string };
+// Person B's screens use Person A's real types from api.ts.
+import type { Api } from "../../api";
 
-export type RunResult<D = Record<string, unknown>> = {
-  ok: boolean;
-  message: string;
-  outputs: OutputFile[];
-  data: D;
-};
-
-export type ApiLike = {
-  runTool: (toolId: string, fileIds: string[], params: Record<string, unknown>) => Promise<RunResult>;
-  fileUrl: (fileId: string) => string;
-};
+export type { RunResult, OutputRef as OutputFile } from "../../api";
+export type ApiLike = Pick<Api, "runTool" | "fileUrl">;
 
 // A rectangle on a PDF page, in PDF points with the origin at the top-left.
 export type Box = {
