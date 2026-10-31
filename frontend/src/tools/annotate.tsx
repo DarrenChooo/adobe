@@ -55,6 +55,7 @@ function AnnotatePane(props: ToolPaneProps) {
           onPlace={place}
           onRemove={(i) => setItems((s) => s.filter((_, j) => j !== i))}
           onMove={(i, x, y) => setItems((s) => s.map((it, j) => (j === i ? { ...it, x, y } : it)))}
+          onResize={(i, w, h) => setItems((s) => s.map((it, j) => (j === i ? { ...it, w, h } : it)))}
           onEdit={(i, t) => setItems((s) => s.map((it, j) => (j === i ? { ...it, text: t } : it)))}
           // Highlight and whiteout: drag across the text instead of clicking.
           onDraw={kind === "highlight" || kind === "whiteout" ? (page, x, y, w, h) => setItems((s) => {

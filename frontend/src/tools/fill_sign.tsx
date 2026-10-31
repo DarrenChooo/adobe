@@ -88,6 +88,7 @@ function FillSignPane(props: ToolPaneProps) {
           onPlace={(page, x, y) => sig && setStamps((s) => [...s, { ...boxAt(page, x, y, 0.3, 0.07), kind: "image", image: sig }])}
           onRemove={(i) => setStamps((s) => s.filter((_, j) => j !== i))}
           onMove={(i, x, y) => setStamps((s) => s.map((b, j) => (j === i ? { ...b, x, y } : b)))}
+          onResize={(i, w, h) => setStamps((s) => s.map((b, j) => (j === i ? { ...b, w, h } : b)))}
           onEdit={(i, t) => setStamps((s) => s.map((b, j) => (j === i ? { ...b, text: t } : b)))}
         />
       </Stage>

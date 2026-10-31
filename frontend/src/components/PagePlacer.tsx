@@ -26,6 +26,8 @@ interface Props {
   onRemove: (index: number) => void;
   /** When given, boxes can be dragged; called with the box's new top-left (fractions). */
   onMove?: (index: number, x: number, y: number) => void;
+  /** When given, each box gets a corner handle; called with its new width/height (fractions). */
+  onResize?: (index: number, w: number, h: number) => void;
   /** Called as you type into an editable box. */
   onEdit?: (index: number, text: string) => void;
   /** Focus this box's text field (e.g. the one just placed). */
@@ -41,10 +43,11 @@ type Pt = [number, number];
 
 /** A PDF you click on (or drag across) to add boxes: signatures, notes, highlights. Put it inside <Stage>. */
 export default function PagePlacer({
-  fileId, boxes, onPlace, onRemove, onMove, onEdit, focusIndex, onDraw, drawColor = "#c9a400", width = 680,
+  fileId, boxes, onPlace, onRemove, onMove, onResize, onEdit, focusIndex, onDraw, drawColor = "#c9a400", width = 680,
 }: Props) {
-  // Moving a box: which one, and where inside it the pointer grabbed (fractions of the page).
-  const drag = useRef<{ i: number; dx: number; dy: number } | null>(null);
+  // Moving or resizing a box: which one, the grab offset, and the pointer/size at the start (fractions).
+  const drag = useRef<{ i: number; mode: "move" | "resize"; dx: number; dy: number; px: number; py: number; w: number; h: number } | null>(null);
+  const handles = !!(onMove || onResize);
   // Drawing a new box: the page, the start corner, and that page's element.
   const drawStart = useRef<{ page: number; x: number; y: number; el: HTMLElement } | null>(null);
   const justDrew = useRef(false);
@@ -69,23 +72,28 @@ export default function PagePlacer({
         ...(onMove ? { cursor: "move", touchAction: "none" } : {}),
       }}
       title={onMove ? "Drag to move" : undefined}
-      onPointerDown={onMove ? (e) => {
+      onPointerDown={handles ? (e) => {
         const t = e.target as HTMLElement;
-        if (t.closest("input") || (t.closest("button") && !t.closest(".pro-grip"))) return;
+        const resizing = !!t.closest(".pro-resize") && !!onResize;
+        if (!resizing && (!onMove || t.closest("input") || (t.closest("button") && !t.closest(".pro-grip")))) return;
         e.preventDefault();
         e.stopPropagation();
         const [px, py] = frac(e, e.currentTarget.closest(".page-wrap")!);
-        drag.current = { i, dx: px - b.x, dy: py - b.y };
+        drag.current = { i, mode: resizing ? "resize" : "move", dx: px - b.x, dy: py - b.y, px, py, w: b.w, h: b.h };
         try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* no live pointer */ }
       } : undefined}
-      onPointerMove={onMove ? (e) => {
+      onPointerMove={handles ? (e) => {
         const d = drag.current;
         if (!d || d.i !== i) return;
         e.stopPropagation();
         const [px, py] = frac(e, e.currentTarget.closest(".page-wrap")!);
-        onMove(i, Math.min(Math.max(px - d.dx, 0), 1 - b.w), Math.min(Math.max(py - d.dy, 0), 1 - b.h));
+        if (d.mode === "resize" && onResize) {
+          onResize(i, Math.min(Math.max(d.w + px - d.px, 0.02), 1 - b.x), Math.min(Math.max(d.h + py - d.py, 0.012), 1 - b.y));
+        } else if (onMove) {
+          onMove(i, Math.min(Math.max(px - d.dx, 0), 1 - b.w), Math.min(Math.max(py - d.dy, 0), 1 - b.h));
+        }
       } : undefined}
-      onPointerUp={onMove ? (e) => { e.stopPropagation(); drag.current = null; } : undefined}
+      onPointerUp={handles ? (e) => { e.stopPropagation(); drag.current = null; } : undefined}
       onClick={(e) => e.stopPropagation()}
     >
       {b.image ? (
@@ -106,6 +114,11 @@ export default function PagePlacer({
           style={{ left: -9, right: "auto", cursor: "move" }} onClick={(e) => e.stopPropagation()}>✥</button>
       )}
       <button type="button" title="Remove" aria-label="Remove" onClick={(e) => { e.stopPropagation(); onRemove(i); }}>×</button>
+      {onResize && (
+        <span className="pro-resize" title="Drag to resize" aria-label="Drag to resize"
+          style={{ position: "absolute", right: -7, bottom: -7, width: 12, height: 12, background: "#fff",
+                   border: `2px solid ${b.color ?? "var(--blue)"}`, borderRadius: 3, cursor: "nwse-resize", touchAction: "none" }} />
+      )}
     </div>
   );
 

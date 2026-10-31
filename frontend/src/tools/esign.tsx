@@ -69,6 +69,8 @@ function SendPane(props: ToolPaneProps) {
           boxes={boxes}
           onPlace={(page, x, y) => setBoxes((s) => [...s, { ...boxAt(page, x, y, ...SIZES[kind]), kind, label: LABEL[kind] }])}
           onRemove={(i) => setBoxes((s) => s.filter((_, j) => j !== i))}
+          onMove={(i, x, y) => setBoxes((s) => s.map((b, j) => (j === i ? { ...b, x, y } : b)))}
+          onResize={(i, w, h) => setBoxes((s) => s.map((b, j) => (j === i ? { ...b, w, h } : b)))}
         />
       </Stage>
 
