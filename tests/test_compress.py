@@ -10,7 +10,8 @@ def test_compress_image_pdf(upload, run, fetch):
     res = run("compress", [src], {"level": "high"})
     assert res["ok"], res["message"]
     d = res["data"]
-    assert d["bytes_after"] < d["bytes_before"]
+    assert d["images_recompressed"] == 1 and d["images_skipped"] == 0
+    assert d["bytes_after"] < d["bytes_before"] * 0.5
     assert len(PdfReader(io.BytesIO(fetch(res["outputs"][0]["file_id"]))).pages) == 1
 
 

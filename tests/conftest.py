@@ -1,10 +1,15 @@
 """Shared test helpers: a client for the real app and an upload helper."""
+import os
+import tempfile
 from pathlib import Path
 
-import pytest
-from fastapi.testclient import TestClient
+# Tests write to a throwaway storage folder, never the real storage/.
+os.environ["FILLME_STORAGE"] = tempfile.mkdtemp(prefix="fillme-test-")
 
-from app.main import app
+import pytest  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
+
+from app.main import app  # noqa: E402
 
 SAMPLES = Path(__file__).resolve().parents[1] / "samples"
 

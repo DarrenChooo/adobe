@@ -17,11 +17,11 @@ FLAGS = {
 
 
 def permissions_flag(params: dict) -> int:
-    flag = P.R1 | P.R2 | P.R7 | P.R8  # reserved bits that must be 1
+    flag = int(P.R1 | P.R2 | P.R7 | P.R8) | 0xFFFFF000  # reserved bits 1-2, 7-8, 13-32 must be 1
     for key, bits in FLAGS.items():
         if params.get(key, key in ("allow_print", "allow_annotate")):
-            flag |= bits
-    return int(flag)
+            flag |= int(bits)
+    return flag - (1 << 32)  # /P is a signed 32-bit integer
 
 
 def run(inputs: list[Path], params: dict, ctx: RunContext) -> ToolResult:

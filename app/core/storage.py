@@ -2,14 +2,16 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import shutil
 import uuid
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-STORAGE_DIR = ROOT / "storage"
-STORAGE_DIR.mkdir(exist_ok=True)
+# FILLME_STORAGE lets tests use a throwaway folder instead of the real one.
+STORAGE_DIR = Path(os.environ.get("FILLME_STORAGE") or ROOT / "storage")
+STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 
 _ID_RE = re.compile(r"^[0-9a-f]{32}$")
 

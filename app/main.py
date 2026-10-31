@@ -115,6 +115,8 @@ if DIST.exists():
 
     @app.get("/{path:path}", include_in_schema=False)
     def spa(path: str):
+        if path.startswith(("api/", "files/")) or path in ("api", "files"):
+            raise HTTPException(404, "Not found")
         target = (DIST / path).resolve()
         if path and target.is_file() and DIST.resolve() in target.parents:
             return FileResponse(target)

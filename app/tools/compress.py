@@ -28,9 +28,13 @@ def run(inputs: list[Path], params: dict, ctx: RunContext) -> ToolResult:
     for page in writer.pages:
         for img in page.images:
             try:
+                if img.indirect_reference is None:  # inline image: leave it
+                    images_skipped += 1
+                    continue
+                xobj = img.indirect_reference.get_object()
+                stored = len(xobj._data)  # size as stored in the file (still encoded)
                 pil = img.image
-                raw_len = len(img.data)
-                if pil.mode in ("RGBA", "LA", "P", "1") or "/SMask" in img.indirect_object or "/Mask" in img.indirect_object:
+                if pil.mode in ("RGBA", "LA", "P", "1") or "/SMask" in xobj or "/Mask" in xobj:
                     images_skipped += 1  # transparency/masks: leave alone rather than break them
                     continue
                 if max(pil.size) > max_px:
@@ -39,7 +43,7 @@ def run(inputs: list[Path], params: dict, ctx: RunContext) -> ToolResult:
                     pil = pil.convert("RGB")
                 buf = io.BytesIO()
                 pil.save(buf, "JPEG", quality=quality, optimize=True)
-                if buf.tell() < raw_len:
+                if buf.tell() < stored:
                     img.replace(pil, quality=quality)
                     images_done += 1
                 else:
