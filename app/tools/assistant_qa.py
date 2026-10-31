@@ -68,6 +68,21 @@ def _normalise(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", " ", text.lower()).strip()
 
 
+def quote_on_page(quote: str, page_text: str) -> bool:
+    """True if the quoted words are on the page. A quote shortened with "..." passes only if
+    every part is there, in order."""
+    page = _normalise(page_text)
+    position = 0
+    parts = [_normalise(part) for part in re.split(r"\.{3,}|…", quote)]
+    parts = [part for part in parts if part]
+    for part in parts:
+        found = page.find(part, position)
+        if found < 0:
+            return False
+        position = found + len(part)
+    return bool(parts)
+
+
 def select_pages(pages: list[str], question: str = "", limit: int = MAX_CHARS) -> list[int]:
     """Page indexes to send. Long documents keep the pages sharing most words with the question."""
     wanted = set(_normalise(question).split())
@@ -91,7 +106,7 @@ def check_citations(pages: list[str], answer: str, citations: list[dict]) -> lis
     for citation in citations:
         page, quote = citation["page"], citation["quote"]
         exists = 1 <= page <= len(pages)
-        quoted = bool(_normalise(quote)) and exists and _normalise(quote) in _normalise(pages[page - 1])
+        quoted = exists and quote_on_page(quote, pages[page - 1])
         checked.append({"page": page, "quote": quote, "page_exists": exists, "quote_found": quoted,
                         "verified": exists and quoted})
     backed = {c["page"] for c in checked if c["verified"]}

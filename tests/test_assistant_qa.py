@@ -56,6 +56,14 @@ def test_page_cited_in_answer_without_a_quote_fails(tmp_path, monkeypatch):
     assert reply["all_verified"] is False
 
 
+def test_shortened_quote_needs_every_part_in_order():
+    page = "If you are a foreign person, for any reason at all, do not use this form."
+    assert assistant_qa.quote_on_page("If you are a foreign person... do not use this form", page)
+    assert not assistant_qa.quote_on_page("do not use this form... If you are a foreign person", page)
+    assert not assistant_qa.quote_on_page("If you are a foreign person... use that other form", page)
+    assert not assistant_qa.quote_on_page("...", page)
+
+
 def test_refusal_uses_fixed_wording(tmp_path, monkeypatch):
     fake_model(monkeypatch, {"found": False, "answer": "No idea", "citations": []})
     reply = assistant_qa.ask(make_pdf(tmp_path / "a.pdf"), "Who is the CEO?")
