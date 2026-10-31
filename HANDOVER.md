@@ -1,6 +1,6 @@
 # Handover: Acrobat-style frontend rebuild (branch `b/acrobat-ui`)
 
-Last updated: 31 Oct 2026, 14:55 SGT (all three helpers finished and stopped). Submission deadline 16:15 SGT.
+Last updated: 31 Oct 2026, 14:53 SGT (all three helpers finished and stopped; `npm run build` passes). Submission deadline 16:15 SGT.
 
 ## What this branch is
 A ground-up rebuild of the frontend so it works like Adobe Acrobat. Server code and the HTTP API are
@@ -46,7 +46,7 @@ Shared look: building-block classes in `frontend/src/styles.css`. Names, icons, 
    frame's file list so the tab shows its name instead of "Document"). Opening files from Home, Recent or a tool works.
 2. Password-protected PDFs: the centre view now hands them to the PDF preview so it can say "password-protected,
    unlock it first"; untested because of issue 1.
-3. Whole-project typecheck reported clean by the AI helper at 14:51; `npm run build` not yet run on the final state.
+3. Whole-project typecheck reported clean by the AI helper at 14:51; `npm run build` passes on the final state (14:53).
 4. Files uploaded straight to `POST /api/files` (not through the app) get tabs named "Document"; same root as issue 1.
 5. `SchemaForm`, `ResultPanel`, `PdfPreview` still use the old `.empty` class (unstyled message text).
 6. **AI features need `LLM_MODEL` in `.env`.** Every AI call on the test server returned exactly `LLM_MODEL is not set. Add it to .env.` (`SOCLAAS_API_KEY` was set). This applies to main too: set it on the demo laptop.
