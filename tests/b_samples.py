@@ -135,6 +135,32 @@ def make(out: Path) -> dict:
     c.showPage(); c.save()
     paths["table"] = p
 
+    # A fillable form (real AcroForm fields) and the same form flat (no fields).
+    for name, fillable in (("b_form_fillable.pdf", True), ("b_form_flat.pdf", False)):
+        p = out / name
+        c = canvas.Canvas(str(p), pagesize=A4)
+        c.setFont(FONT, SIZE)
+        c.drawString(72, H - 72, "Event Pass Registration (sample, made up)")
+        rows = [("Full name", "full_name"), ("NRIC", "nric"), ("Email", "email")]
+        for i, (label, key) in enumerate(rows):
+            y = H - 120 - i * 36
+            c.drawString(72, y, f"{label}:")
+            if fillable:
+                c.acroForm.textfield(name=key, tooltip=label, x=180, y=y - 5, width=260, height=18,
+                                     borderWidth=1, forceBorder=True, fontSize=10)
+            else:
+                c.line(180, y - 4, 440, y - 4)
+        y = H - 120 - 3 * 36
+        c.drawString(72, y, "Pass type:")
+        if fillable:
+            c.acroForm.choice(name="pass_type", tooltip="Pass type", value="Day", options=["Day", "Weekend", "VIP"],
+                              x=180, y=y - 5, width=140, height=18, fontSize=10)
+        c.drawString(72, y - 36, "I agree to the event terms")
+        if fillable:
+            c.acroForm.checkbox(name="agree", tooltip="I agree to the event terms", x=260, y=y - 41, size=14)
+        c.showPage(); c.save()
+        paths[name[:-4]] = p
+
     # Scanned copy of letter page 1: an image-only PDF with no text layer.
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from app.pro.pdfio import render_page
