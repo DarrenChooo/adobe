@@ -15,6 +15,8 @@ Re-run: `.venv/bin/python -m pytest -q -s tests/test_redact.py tests/test_ocr.py
 | Redact: on a scan | Planted values caught on the scanned page (OCR runs first, automatically) | **5 / 5**, leak test pass, 1.6 s |
 | Redact: audit | Text hidden under naive black boxes, found in `b_naive_redaction.pdf` | **3 / 3** recovered |
 | OCR | Word accuracy on the scan sample vs the known text | **98.1%** |
+| OCR | Word accuracy on a fake **phone photo** of the letter (`samples/b_photo.jpg`: tilt, keystone, shadow, blur, noise, JPEG 55) | **96.2%** (51 / 53 words; "Blk" read as "Bik") |
+| Redact: on the phone photo | Sensitive items on that page caught and removed (2 NRIC, 2 phone, 1 email, 1 address) | **6 / 6**, leak test pass |
 | OCR | Time | ~2.0 s per page at 300 dpi |
 | Compare | Planted edits found (2 changed words, 1 changed number, 1 removed clause, 1 added clause) | **5 / 5** text changes; 4 highlighted areas |
 | Compare | Time | 0.2 s for one page |
@@ -28,3 +30,4 @@ Re-run: `.venv/bin/python -m pytest -q -s tests/test_redact.py tests/test_ocr.py
 2. **Names are not detected**, and addresses only when they follow Singapore patterns (Blk/Block, a street name ending in Road/Street/Avenue/etc., a #unit, or "Singapore 123456" / "S(123456)"). A bare 6-digit postal code with no "Singapore" in front is left alone on purpose (too many false alarms). Unusual addresses need a box drawn by hand.
 3. **Redacted pages become images plus an OCR text layer.** That is what makes removal guaranteed, but the page's original text quality on those pages is replaced by OCR quality.
 4. Word export keeps text and images in page order, not the original layout.
+5. **The phone photo is generated, not a real photo** (`tests/b_photo.py`). It adds tilt, keystone, uneven light, a shadow, blur, noise and JPEG compression, but not glare, curled paper or focus blur. OCR misread "Blk" as "Bik" on it; the address pattern now accepts Bik/B1k, like it accepts "$" for a misread NRIC "S".
