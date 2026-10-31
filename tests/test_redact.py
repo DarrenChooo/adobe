@@ -11,6 +11,9 @@ def test_detect_finds_every_planted_value_and_no_decoys(samples):
     for kind in ("nric", "phone", "email"):
         for value in truth[kind]:
             assert value in found, f"missed {kind} {value}"
+    squashed = [f.replace(" ", "") for f in found]
+    for addr in truth["address"]:
+        assert any(addr.replace(" ", "") in f for f in squashed), f"missed address {addr}"
     for decoy in truth["decoys"]:
         assert decoy not in found, f"false positive {decoy}"
 
@@ -20,9 +23,9 @@ def test_apply_removes_text_for_real(samples):
     assert res["ok"], res["message"]
     assert res["data"]["leak_test"] == "pass", res["data"]["leaked"]
     text = "\n".join(all_text(res["outputs"][0]["path"])).replace(" ", "")
-    for kind in ("nric", "phone", "email"):
+    for kind in ("nric", "phone", "email", "address"):
         for value in samples["truth"]["planted"][kind]:
-            assert value.replace(" ", "") not in text
+            assert value.replace(" ", "") not in text, f"{kind} still readable: {value}"
     assert "TanWeiMing" in text  # the rest of the page is still searchable
 
 
@@ -45,3 +48,14 @@ def test_audit_passes_our_own_output(samples):
     applied = redact.run([samples["naive"]], {"mode": "apply"}, samples["out"])
     res = redact.run([applied["outputs"][0]["path"]], {"mode": "audit"}, samples["out"])
     assert res["data"]["hidden"] == []
+
+
+def test_address_is_one_box_per_address(samples):
+    res = redact.run([samples["letter"]], {"mode": "detect", "types": ["address"]}, samples["out"])
+    texts = [h["text"] for h in res["data"]["hits"]]
+    assert len(texts) == 4, texts  # three full addresses + one lone unit number, no fragments
+
+
+def test_address_can_be_switched_off(samples):
+    res = redact.run([samples["letter"]], {"mode": "detect", "types": ["nric", "phone", "email"]}, samples["out"])
+    assert not any(h["type"] == "address" for h in res["data"]["hits"])

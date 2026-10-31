@@ -75,7 +75,7 @@ function RedactPanel({ selectedFileIds, api, onResult }: ToolPanelProps) {
   return (
     <div className="pro-panel">
       <p className="pro-help">
-        Finds NRIC/FIN numbers, Singapore phone numbers and emails, then removes them for real: the page is rebuilt so the
+        Finds NRIC/FIN numbers, Singapore phone numbers, emails and addresses, then removes them for real: the page is rebuilt so the
         text is gone from the file, not just covered.
       </p>
       <div className="pro-row">

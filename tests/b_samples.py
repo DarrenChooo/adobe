@@ -37,12 +37,22 @@ LETTER_P2 = [
     "Co-applicant email: mei.ling@example.org",
     "Guarantor NRIC: G1122334K",
     "Postal code 123456 is not a phone number.",
+    "Co-applicant address: Block 45A Sample Avenue 3, #12-345, S(560045)",
+    "Guarantor address: 88 Example Crescent, Singapore 588888",
+    "Mailing unit #03-21 at the same block.",
+    "Meeting at 2 pm in Room 5, Level 3 of the main building.",
 ]
 PLANTED = {
     "nric": ["S1234567D", "T0123456Z", "F9876543N", "G1122334K"],
     "phone": ["+65 9123 4567", "8765 4321", "91112222", "6123 4567"],
     "email": ["weiming.tan@example.com", "mei.ling@example.org"],
-    "decoys": ["12345678", "123456", "S12345", "2026-10-31"],
+    "address": [
+        "Blk 123 Example Street 45, #06-78, Singapore 123456",
+        "Block 45A Sample Avenue 3, #12-345, S(560045)",
+        "88 Example Crescent, Singapore 588888",
+        "#03-21",
+    ],
+    "decoys": ["12345678", "123456", "S12345", "2026-10-31", "Room 5", "Level 3", "2 pm"],
 }
 
 CONTRACT_V1 = [
