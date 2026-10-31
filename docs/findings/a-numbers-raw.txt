@@ -1,0 +1,46 @@
+# Machine: Windows-11-10.0.26200-SP0, Python 3.13.9, 20 runs each, median
+
+| Operation | Median time (ms) |
+|---|---|
+| merge 3p + 2p | 4.6 |
+| merge 51p + 2p | 17.2 |
+| split 3p into 3 files | 6.1 |
+| split 51p into 51 files | 61.5 |
+| protect 3p (AES-256) | 10.5 |
+| protect 51p (AES-256) | 28.1 |
+
+| Compression level | Before (KB) | After (KB) | Saved |
+|---|---|---|---|
+| low (5 photo pages) | 250 | 112 | 55.1% |
+| medium (5 photo pages) | 250 | 76 | 69.4% |
+| high (5 photo pages) | 250 | 55 | 78.0% |
+| medium (3p text-only report) | 3.1 | 2.8 | 11.3% |
+
+# Page tree of a-report-3p.pdf
+Catalog keys: ['/PageMode', '/Pages', '/Type']
+Pages node: {'/Count': 3, '/Kids': '[3 refs]', '/Type': '/Pages'}
+Kids: ['4 0 R', '5 0 R', '6 0 R']
+Page 1 keys: ['/Contents', '/MediaBox', '/Parent', '/Resources', '/Rotate', '/Trans', '/Type']
+
+# AcroForm fields of a-form-fields.pdf
+AcroForm keys: ['/DA', '/DR', '/Fields'] | field count: 9
+  /T txtLName_1   /FT /Tx   /TU Surname / family name        /Rect [200, 700, 500, 720]
+  /T txtFName_1   /FT /Tx   /TU Given name(s)                /Rect [200, 664, 500, 684]
+  /T txtID_1      /FT /Tx   /TU NRIC or FIN number           /Rect [200, 628, 500, 648]
+  /T dob          /FT /Tx   /TU Date of birth (DD/MM/YYYY)   /Rect [200, 592, 500, 612]
+  /T txtEmail     /FT /Tx   /TU Email address                /Rect [200, 556, 500, 576]
+  /T txtTel_2     /FT /Tx   /TU Mobile phone number          /Rect [200, 520, 500, 540]
+  /T addr1        /FT /Tx   /TU Residential address          /Rect [200, 484, 500, 504]
+  /T cboType      /FT /Ch   /TU Membership type              /Rect [200, 448, 350, 468]
+  /T chkAgree     /FT /Btn  /TU Agree to the rules           /Rect [200, 412, 216, 428]
+
+# What encryption covers
+Plain text 'Quarterly Report' visible in protected bytes: False
+Plain text 'Quarterly Report' visible in original bytes:  True
+/Encrypt dict: {'/V': 5, '/R': 6, '/Length': 256, '/P': 4294965735, '/Filter': '/Standard', '/O': '<bytes>', '/U': '<bytes>', '/CF': '<bytes>', '/StmF': '<bytes>', '/StrF': '<bytes>', '/OE': '<bytes>', '/UE': '<bytes>', '/Perms': '<bytes>'}
+Readable without password? False
+'/Type /Pages' visible in protected bytes: True
+'/Count 3' visible in protected bytes: True
+'/MediaBox' visible in protected bytes: True
+Text extracted despite allow_copy=False: Quarterly Report (sample) Page 1 of 3 Li
+Signed /P permission value: 4294965735 = 0b11111111111111111111100111100111
