@@ -1,7 +1,10 @@
 storage/
 node_modules/
 frontend/dist/
-.env
+# Anything env-related: .env, .env.local, .env.example, prod.env ...
+.env*
+*.env
+*.env.*
 .venv/
 venv/
 __pycache__/

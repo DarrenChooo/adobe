@@ -11,8 +11,17 @@ python -m venv .venv
 # Windows: .venv\Scripts\activate    macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
 cd frontend && npm install && cd ..
-cp .env.example .env   # only needed for the AI tools
 ```
+
+**AI tools only:** create a file named `.env` in the project root with these three lines, then fill in your own values:
+
+```
+LLM_BASE_URL=https://soclaas-api.comp.nus.edu.sg/v1
+LLM_MODEL=
+SOCLAAS_API_KEY=
+```
+
+Every `.env` file is git-ignored. **Never put a real key in any file you commit**, and never paste one into this README.
 
 ## Run
 
